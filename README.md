@@ -6,3 +6,6 @@ Structure of typical article: abstract, introduction & related work, method, exp
 Possible paintings dataset: 
 https://huggingface.co/datasets/keremberke/painting-style-classification?library=true 
 https://huggingface.co/datasets/huggan/wikiart
+
+
+
