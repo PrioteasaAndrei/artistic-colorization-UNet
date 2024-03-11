@@ -34,7 +34,10 @@ More details regarding this framework are given in the other chapter Influence o
 
 THe trained network needs only one image that represents the style to which the image will be transferred.
 
-Github repo is here, but its in lua :( [GitHub: xunhuang1995/AdaIN-style](https://github.com/xunhuang1995/AdaIN-style)
+Sources:
+- [GitHub: xunhuang1995/AdaIN-style](https://github.com/xunhuang1995/AdaIN-style) original official implementation, but in lua
+- [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN) official pytorch implementation
+
 
 See 6.2 Training here: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868)
 
