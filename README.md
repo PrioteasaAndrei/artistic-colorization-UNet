@@ -21,6 +21,7 @@ Reference papers:
 - [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) \
 Note: their approach takes 60Gb in RAM for 64x64 images
 - [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868) ADAIN: The one given to us by the tutor.
+- [Analysis of Different Losses for Deep Learning Image Colorization](https://arxiv.org/pdf/2204.02980.pdf) 
 
 ### Report 
 
