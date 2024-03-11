@@ -7,3 +7,5 @@ Possible paintings dataset:
 https://huggingface.co/datasets/keremberke/painting-style-classification?library=true 
 https://huggingface.co/datasets/huggan/wikiart
 
+
+https://github.com/mberkay0/image-colorization
