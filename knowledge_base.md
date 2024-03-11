@@ -1,6 +1,6 @@
 ## Colorization
 
-Original paper [here](https://arxiv.org/pdf/2204.02980.pdf) (LOOKS REALLY PROMISING)
+Original paper: [Analysis of Different Losses for Deep Learning Image Colorization](https://arxiv.org/pdf/2204.02980.pdf) (LOOKS REALLY PROMISING)
 
 ### Loss function
 
@@ -12,7 +12,7 @@ Conclusion from their paper: loss function doesnt do that much of a difference
 
 ### Evaluation
 
-Report PSNR see [here](https://lightning.ai/docs/torchmetrics/stable/image/peak_signal_noise_ratio.html) (3.2 in paper)
+Report PSNR see [here](https://lightning.ai/docs/torchmetrics/stable/image/peak_signal_noise_ratio.html) (sec. 3.2 in [Analysis of Different Losses for Deep Learning Image Colorization](https://arxiv.org/pdf/2204.02980.pdf) paper)
 
 ### Architecture
 
@@ -34,12 +34,12 @@ More details regarding this framework are given in the other chapter Influence o
 
 THe trained network needs only one image that represents the style to which the image will be transferred.
 
-Github repo is here, but its in lua :( https://github.com/xunhuang1995/AdaIN-style
+Github repo is here, but its in lua :( [GitHub: xunhuang1995/AdaIN-style](https://github.com/xunhuang1995/AdaIN-style)
 
-See 6.2 Training here: https://arxiv.org/pdf/1703.06868v2.pdf (original paper)
+See 6.2 Training here: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868)
 
-Check this out: https://github.com/jcjohnson/neural-style
-CHeck this out: https://www.kaggle.com/code/davidcanorosillo/adain-style
+Check this out: [GitHub: jcjohnson/neural-style](https://github.com/jcjohnson/neural-style) \
+CHeck this out: [kaggle: davidcanorosillo/adain-style](https://www.kaggle.com/code/davidcanorosillo/adain-style)
 
 In the original paper they use encoder (vgg not all layers) -> AdaIn -> decoder 
 
