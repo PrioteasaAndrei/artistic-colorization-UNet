@@ -5,3 +5,7 @@
   </p>
 
 The idea consists in slightly changing the loss function Lc: instead of comparing the embedding of the grayscale image, it will compare to the embedding of the original (colored) image.
+
+Main inspiration and source for this code: [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN) 
+
+Following the ground idea of paper: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868)
