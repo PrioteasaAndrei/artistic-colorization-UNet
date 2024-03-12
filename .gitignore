@@ -1,5 +1,6 @@
 docs/
 .DS_Store
 colorizing_adain/__pycache__/
-colorizing_adain/model/
+colorizing_adain/model/model_storage/
+colorizing_adain/model/logs/
 *.tar
