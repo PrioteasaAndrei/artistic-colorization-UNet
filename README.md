@@ -26,7 +26,7 @@ Note: their approach takes 60Gb in RAM for 64x64 images
 Reference Repos:
 - [GitHub: xunhuang1995/AdaIN-style](https://github.com/xunhuang1995/AdaIN-style?tab=readme-ov-file) official implementation of the ADAIN paper \
 Note: implementation is in lua, but we can use a wrapper to python, such as [lupa 2.0](https://pypi.org/project/lupa/) (repo: [scoder/lupa](https://github.com/scoder/lupa)) or [lunatic-python](https://github.com/bastibe/lunatic-python)
-- [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN) official pytorch implementation
+- [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN) unofficial pytorch implementation
 
 ### Report 
 
