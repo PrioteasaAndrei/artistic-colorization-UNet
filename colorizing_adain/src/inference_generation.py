@@ -19,7 +19,6 @@ def test_transform(size, crop):
     transform = transforms.Compose(transform_list)
     return transform
 
-from IPython.display import Markdown, display
 
 def style_transfer(vgg, decoder, content, style, alpha=1.0,
                    interpolation_weights=None):

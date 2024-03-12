@@ -26,3 +26,4 @@ style_size: 512
 crop: 0
 alpha: 1
 save_ext: ".jpg"
+preserve_color: 1

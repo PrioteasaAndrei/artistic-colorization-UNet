@@ -100,11 +100,14 @@ def train(net,cfg):
     for i in tqdm(range(cfg["max_iter"])):
         adjust_learning_rate(cfg, optimizer, iteration_count=i)
         content_images = next(content_iter).to(device)
+        # display(Markdown(f'content_images: {content_images[0]}'))
         style_images = next(style_iter).to(device)
         _, loss_c, loss_s = network(content_images, style_images)
         loss_c = cfg["content_weight"] * loss_c
         loss_s = cfg["style_weight"] * loss_s
         loss = loss_c + loss_s
+        if i%50==0:
+            display(Markdown(f'loss: {loss}') )
 
         optimizer.zero_grad()
         loss.backward()
