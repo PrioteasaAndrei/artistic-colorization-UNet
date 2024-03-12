@@ -1,6 +1,9 @@
 # Basic options
+content: "data/content_dir/brad_pitt.jpg"         # Content image or directory path to a batch of content images
 content_dir: "data/content_dir/"     # Directory path to a batch of content images
+style: "data/style_dir/brushstrokes.jpg"           # Style image or directory path to a batch of style images
 style_dir: "data/style_dir/"         # Directory path to a batch of style images
+output_dir: "data/output_dir/"                # Directory to save the output images
 #vgg: "vgg_normalised.pth"       # Path to the VGG model
 
 save_dir: "model/model_storage/"       # Directory to save the model
@@ -9,7 +12,17 @@ lr: 1e-4
 lr_decay: 5e-5
 max_iter: 1000
 batch_size: 8 
-style_weight: 10.0
+style_weight: 4.0
 content_weight: 1.0
 n_threads: 16
-save_model_interval: 10
+save_model_interval: 500
+
+style_interpolation_weights: ""
+
+decoder: "model/model_storage/decoder_iter_100.pth.tar"
+
+content_size: 512
+style_size: 512
+crop: 0
+alpha: 1
+save_ext: ".jpg"

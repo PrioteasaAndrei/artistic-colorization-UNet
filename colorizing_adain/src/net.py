@@ -26,10 +26,10 @@ class VGG_Encoder(torch.nn.Module):
                                            *f[19:21])
 
     def forward(self, x):
-        out_1 = self.relu1_1(x)
-        out_2 = self.relu2_1(out_1)
-        out_3 = self.relu3_1(out_2)
-        result = self.relu4_1(out_3)
+        out_1 = self.relu1(x)
+        out_2 = self.relu2(out_1)
+        out_3 = self.relu3(out_2)
+        result = self.relu4(out_3)
         return out_1, out_2, out_3, result
     
 
@@ -140,14 +140,3 @@ class Net(torch.nn.Module):
             loss_s += self.calc_style_loss(g_t_feats[i], style_feats[i])
         return g_t,loss_c, loss_s
     
-
-def generate_image(network, content, style, alpha):
-    device = torch.device("cuda" if torch.cuda.is_available()
-                else "mps" if torch.backends.mps.is_built() else "cpu")
-    display(Markdown(f'Using device: {device}'))
-    network.eval()
-    with torch.no_grad():
-        content = content.to(device)
-        style = style.to(device)
-        g_t, _, _ = network(content, style, alpha)
-        return g_t
