@@ -1,3 +1,4 @@
 docs/
 .DS_Store
 colorizing_adain/__pycache__/
+colorizing_adain/model/

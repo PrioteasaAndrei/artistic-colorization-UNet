@@ -1,0 +1,15 @@
+# Basic options
+content_dir: "data/content_dir/"     # Directory path to a batch of content images
+style_dir: "data/style_dir/"         # Directory path to a batch of style images
+#vgg: "vgg_normalised.pth"       # Path to the VGG model
+
+save_dir: "model/model_storage/"       # Directory to save the model
+log_dir: "model/logs/"                  # Directory to save the tensorboard logs
+lr: 1e-4
+lr_decay: 5e-5
+max_iter: 1000
+batch_size: 8 
+style_weight: 10.0
+content_weight: 1.0
+n_threads: 16
+save_model_interval: 10
