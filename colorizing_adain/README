@@ -1,0 +1,7 @@
+## Attempt: Autoencoder from AdaIN paper + colorization
+
+<p align="left">
+    <img src="../images/adain_autoencoder_with_colorization.jpeg" width="700" />
+  </p>
+
+The idea consists in slightly changing the loss function Lc: instead of comparing the embedding of the grayscale image, it will compare to the embedding of the original (colored) image.
