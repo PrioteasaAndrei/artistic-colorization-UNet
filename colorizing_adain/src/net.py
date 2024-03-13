@@ -67,6 +67,7 @@ class Decoder(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(64, 3, (3, 3)),
+            torch.nn.Sigmoid(),
         )
     def forward(self, x):
         result = self.decode(x)
@@ -144,5 +145,5 @@ class Net(torch.nn.Module):
         content_feat = self.encode(original)
         reproduced_image=self.decoder(content_feat)
         loss = torch.nn.functional.mse_loss(original, reproduced_image)
-        return loss
+        return reproduced_image,loss
     

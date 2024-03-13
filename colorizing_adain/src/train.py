@@ -106,9 +106,10 @@ def train(net,cfg):
         loss_c = cfg["content_weight"] * loss_c
         loss_s = cfg["style_weight"] * loss_s
         loss = loss_c + loss_s """
-        loss=network(content_images)
+        reproduced_image,loss=network(content_images)
         if i%50==0:
             display(Markdown(f'loss: {loss}') )
+            display(Markdown(f'reproduced_image min: {reproduced_image.min()} max: {reproduced_image.max()}') )
 
         optimizer.zero_grad()
         loss.backward()
