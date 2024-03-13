@@ -124,7 +124,7 @@ class Net(torch.nn.Module):
         return self.mse_loss(input_mean, target_mean) + \
                self.mse_loss(input_std, target_std)
 
-    def forward(self, content, style, alpha=1.0):
+    """ def forward(self, content, style, alpha=1.0):
         assert 0 <= alpha <= 1
         style_feats = self.encode_with_intermediate(style)
         content_feat = self.encode(content)
@@ -138,5 +138,11 @@ class Net(torch.nn.Module):
         loss_s = self.calc_style_loss(g_t_feats[0], style_feats[0])
         for i in range(1, 4):
             loss_s += self.calc_style_loss(g_t_feats[i], style_feats[i])
-        return g_t,loss_c, loss_s
+        return g_t,loss_c, loss_s """
+    
+    def forward(self, original):
+        content_feat = self.encode(original)
+        reproduced_image=self.decoder(content_feat)
+        loss = torch.nn.functional.mse_loss(original, reproduced_image)
+        return loss
     

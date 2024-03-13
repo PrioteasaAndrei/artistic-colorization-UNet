@@ -102,10 +102,11 @@ def train(net,cfg):
         content_images = next(content_iter).to(device)
         # display(Markdown(f'content_images: {content_images[0]}'))
         style_images = next(style_iter).to(device)
-        _, loss_c, loss_s = network(content_images, style_images)
+        """ _, loss_c, loss_s = network(content_images, style_images)
         loss_c = cfg["content_weight"] * loss_c
         loss_s = cfg["style_weight"] * loss_s
-        loss = loss_c + loss_s
+        loss = loss_c + loss_s """
+        loss=network(content_images)
         if i%50==0:
             display(Markdown(f'loss: {loss}') )
 
@@ -113,8 +114,9 @@ def train(net,cfg):
         loss.backward()
         optimizer.step()
 
-        writer.add_scalar('loss_content', loss_c.item(), i + 1)
-        writer.add_scalar('loss_style', loss_s.item(), i + 1)
+        writer.add_scalar('loss', loss.item(), i + 1)
+        """ writer.add_scalar('loss_content', loss_c.item(), i + 1)
+        writer.add_scalar('loss_style', loss_s.item(), i + 1) """
 
         if (i + 1) % cfg["save_model_interval"] == 0 or (i + 1) == cfg["max_iter"]:
             state_dict = net.decoder.state_dict()
