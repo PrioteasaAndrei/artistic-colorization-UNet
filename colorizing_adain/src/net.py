@@ -97,7 +97,7 @@ class Net(torch.nn.Module):
         for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
             for param in getattr(self, name).parameters():
                 param.requires_grad = False
-    """ 
+    
     # extract relu1_1, relu2_1, relu3_1, relu4_1 from input image
     def encode_with_intermediate(self, input):
         results = [input]
@@ -111,7 +111,7 @@ class Net(torch.nn.Module):
         for i in range(4):
             input = getattr(self, 'enc_{:d}'.format(i + 1))(input)
         return input
-
+    """ 
     def calc_content_loss(self, input, target):
         assert (input.size() == target.size())
         assert (target.requires_grad is False)

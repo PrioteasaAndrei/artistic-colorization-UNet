@@ -10,7 +10,7 @@ save_dir: "model/model_storage/"       # Directory to save the model
 log_dir: "model/logs/"                  # Directory to save the tensorboard logs
 lr: 1e-4
 lr_decay: 5e-5
-max_iter: 10
+max_iter: 100
 batch_size: 16
 style_weight: 4.0
 content_weight: 1.0
@@ -28,5 +28,5 @@ alpha: 1
 save_ext: ".jpg"
 preserve_color: 1
 
-train_size: 20
+train_size: 200
 test_size: 10
