@@ -2,8 +2,8 @@ import torch
 import torchvision
 from IPython.display import Markdown, display
 
-from function import calc_mean_std
-from function import adaptive_instance_normalization as adain
+#from colorizing_adain.src.UNUSED_function import calc_mean_std
+#from colorizing_adain.src.UNUSED_function import adaptive_instance_normalization as adain
 
 '''
 Encoder is a pretrained VGG up to relu4_1 as in the original paper (see 6.1 paper)
@@ -67,7 +67,7 @@ class Decoder(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(64, 3, (3, 3)),
-            torch.nn.Sigmoid(),
+            #torch.nn.Sigmoid(),
         )
     def forward(self, x):
         result = self.decode(x)
@@ -91,13 +91,13 @@ class Net(torch.nn.Module):
         self.enc_3 = torch.nn.Sequential(encoder.relu3)  # relu2 -> relu3
         self.enc_4 = torch.nn.Sequential(encoder.relu4)  # relu3 -> relu4
         self.decoder = decoder
-        self.mse_loss = torch.nn.MSELoss()
+        #self.mse_loss = torch.nn.MSELoss()
 
         # fix the encoder
         for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
             for param in getattr(self, name).parameters():
                 param.requires_grad = False
-
+    """ 
     # extract relu1_1, relu2_1, relu3_1, relu4_1 from input image
     def encode_with_intermediate(self, input):
         results = [input]
@@ -125,7 +125,7 @@ class Net(torch.nn.Module):
         return self.mse_loss(input_mean, target_mean) + \
                self.mse_loss(input_std, target_std)
 
-    """ def forward(self, content, style, alpha=1.0):
+    def forward(self, content, style, alpha=1.0):
         assert 0 <= alpha <= 1
         style_feats = self.encode_with_intermediate(style)
         content_feat = self.encode(content)
@@ -141,9 +141,20 @@ class Net(torch.nn.Module):
             loss_s += self.calc_style_loss(g_t_feats[i], style_feats[i])
         return g_t,loss_c, loss_s """
     
-    def forward(self, original):
-        content_feat = self.encode(original)
-        reproduced_image=self.decoder(content_feat)
-        loss = torch.nn.functional.mse_loss(original, reproduced_image)
-        return reproduced_image,loss
-    
+    def forward(self, images):
+        # Forget about colorization for the moment: test on recreating colour images
+
+        if len(images)==2:          # Train time
+            colour_images = images[0]
+            grayscale_images = images[1]
+            encoded = self.encode(colour_images)
+            reproduced_image=self.decoder(encoded)
+            loss = torch.nn.functional.mse_loss(colour_images, reproduced_image)
+            return reproduced_image,loss
+        elif len(images)==1:        # Test time
+            grayscale_images = images[0]
+            encoded = self.encode(grayscale_images)
+            reproduced_image=self.decoder(encoded)
+            return reproduced_image
+        else:
+            raise ValueError("Wrong argument passed to formward method. It should be either a list of 2 batches of images for training or a list of 1 batch of image for testing.")

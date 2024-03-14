@@ -10,8 +10,8 @@ save_dir: "model/model_storage/"       # Directory to save the model
 log_dir: "model/logs/"                  # Directory to save the tensorboard logs
 lr: 1e-4
 lr_decay: 5e-5
-max_iter: 400
-batch_size: 8 
+max_iter: 10
+batch_size: 16
 style_weight: 4.0
 content_weight: 1.0
 n_threads: 16
@@ -19,7 +19,7 @@ save_model_interval: 100
 
 style_interpolation_weights: ""
 
-decoder: "model/model_storage/decoder_iter_1000.pth.tar"
+decoder: "model/model_storage/decoder_iter_400.pth.tar"
 
 content_size: 512
 style_size: 512
@@ -27,3 +27,6 @@ crop: 0
 alpha: 1
 save_ext: ".jpg"
 preserve_color: 1
+
+train_size: 20
+test_size: 10
