@@ -19,7 +19,10 @@ load_dotenv()
 class RGBtoLAB(object):
     def __call__(self, img):
         # Convert the image from RGB to LAB color space
-        ## TODO: normalize
+        ## one image is grayscale just repeat channels
+        if img.shape[0] == 1:
+            img = img.repeat(3,1,1)
+
         lab_img = color.rgb2lab(img.permute(1, 2, 0).cpu().numpy()).transpose(2, 0, 1) 
         lab_img = lab_img / 100  # Scale L channel to [0, 1]
         lab_img[1:, :, :] = (lab_img[1:, :, :] + 128) / 255  # Scale a and b channels to [0, 1]
@@ -82,6 +85,8 @@ def prepare_dataset(train_size=10,test_size=10,batch_size=4):
     dataset_train = load_dataset("imagenet-1k",split='train',use_auth_token=login_token,streaming=True)
     dataset_test = load_dataset("imagenet-1k",split='test',use_auth_token=login_token,streaming=True)
     ## map resize transformation before take 
+    ## TODO: 25th image is grayscale and fucks up the dataloader
+    ## its because of the color transformation from skimage that doesnt work so overwrite that
     transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'label': torch.tensor(x['label'])})
     transformed_test = dataset_test.map(lambda x: {'image': transform_test(x['image']),'label': torch.tensor(x['label'])})
     
@@ -97,7 +102,12 @@ def prepare_dataset(train_size=10,test_size=10,batch_size=4):
 
 def prepare_dataloader(train_data,test_data,batch_size=4):
     ## prepare data loader
-    colorization_dataset_train = ColorizationDataset(list(train_data))
+
+    list_train_data = list(train_data)
+    ## filter for 1 channel images
+    train_data = list(filter(lambda x: x['image'].shape[0] == 3, list_train_data))
+
+    colorization_dataset_train = ColorizationDataset(train_data)
     colorization_dataloader_train = DataLoader(colorization_dataset_train, batch_size=batch_size, shuffle=True, num_workers=4)
 
     colorization_dataset_test = ColorizationDataset(list(test_data))
