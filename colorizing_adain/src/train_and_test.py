@@ -98,7 +98,7 @@ def train(net,cfg):
             # Unpack colour and greyscale images
             colour_images=batch_data['image']
             greyscale_images=batch_data['grayscale_image']
-            print(f"colour_images: {colour_images.shape}")
+            
             # Move images to device
             colour_images=colour_images.to(device)
             greyscale_images=greyscale_images.to(device)
