@@ -67,7 +67,7 @@ class Decoder(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(64, 3, (3, 3)),
-            #torch.nn.Sigmoid(),
+            torch.nn.Sigmoid(),
         )
     def forward(self, x):
         result = self.decode(x)
@@ -96,7 +96,7 @@ class Net(torch.nn.Module):
         # fix the encoder
         for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
             for param in getattr(self, name).parameters():
-                param.requires_grad = False
+                param.requires_grad = True
     
     # extract relu1_1, relu2_1, relu3_1, relu4_1 from input image
     def encode_with_intermediate(self, input):

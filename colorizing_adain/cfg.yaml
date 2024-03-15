@@ -5,22 +5,10 @@ style: "data/style_dir/brushstrokes.jpg"           # Style image or directory pa
 style_dir: "data/style_dir/"         # Directory path to a batch of style images
 output_dir: "data/output_dir/"                # Directory to save the output images
 #vgg: "vgg_normalised.pth"       # Path to the VGG model
-
-save_dir: "model/model_storage/"       # Directory to save the model
-log_dir: "model/logs/"                  # Directory to save the tensorboard logs
-lr: 1e-4
-lr_decay: 5e-5
-max_iter: 100
-batch_size: 16
 style_weight: 4.0
 content_weight: 1.0
 n_threads: 16
-save_model_interval: 100
-
 style_interpolation_weights: ""
-
-decoder: "model/model_storage/decoder_iter_100.pth.tar"
-
 content_size: 512
 style_size: 512
 crop: 0
@@ -28,5 +16,17 @@ alpha: 1
 save_ext: ".jpg"
 preserve_color: 1
 
+lr: 1e-4
+lr_decay: 5e-5
 train_size: 200
-test_size: 10
+test_size: 4
+save_model_interval: 1
+save_dir: "model/model_storage/"       # Directory to save the model
+log_dir: "model/logs/"                  # Directory to save the tensorboard logs
+max_iter: 10
+batch_size: 16
+decoder: "model/model_storage/decoder_sigmoid_iter_10.pth.tar"
+enc_1: "model/model_storage/enc_1_sigmoid_iter_10.pth.tar"
+enc_2: "model/model_storage/enc_2_sigmoid_iter_10.pth.tar"
+enc_3: "model/model_storage/enc_3_sigmoid_iter_10.pth.tar"
+enc_4: "model/model_storage/enc_4_sigmoid_iter_10.pth.tar"
