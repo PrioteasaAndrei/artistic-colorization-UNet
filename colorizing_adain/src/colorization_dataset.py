@@ -38,7 +38,7 @@ class LABtoRGB(object):
         # Convert LAB image to RGB color space
         ## TODO: not sure if transpose is necessary
         lab_img = lab_img.permute(1, 2, 0)
-        rgb_<img = color.lab2rgb(lab_img.cpu().numpy())
+        rgb_img = color.lab2rgb(lab_img.cpu().numpy())
 
         # Convert the resulting RGB image to unnormalized format (0-255)
         rgb_img_unnormalized = (rgb_img * 256).astype(np.uint8)

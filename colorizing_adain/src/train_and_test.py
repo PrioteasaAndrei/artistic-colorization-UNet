@@ -59,7 +59,7 @@ def adjust_learning_rate(cfg, optimizer, iteration_count):
 
 
 
-def train(net,cfg):
+def train(network,cfg):
 
     # Setup directories for saving models and logs
     save_dir = Path(cfg['save_dir'])
@@ -73,10 +73,10 @@ def train(net,cfg):
     # Setup tensorboard writer
     writer = SummaryWriter(log_dir=str(cfg['log_dir']))
 
-    # Initialize network
+    """ # Initialize network
     encoder = VGG_Encoder()
     decoder = Decoder()
-    network = Net(encoder, decoder)
+    network = Net(encoder, decoder) """
     network.train()
     network.to(device)
 
@@ -159,7 +159,8 @@ def test_model(net, cfg):
             reproduced_images = net([original_images])
             for reproduced_image in reproduced_images:
                 display(Markdown(f'reproduced_image min: {reproduced_image.min()} max: {reproduced_image.max()}') )
-
+                display(Markdown(f'reproduced_image shape: {reproduced_image.shape}'))
+                
         # Convert tensors to numpy arrays and transpose to correct format for visualization
         original_images_np = original_images.permute(0, 2, 3, 1).cpu().numpy()
         reproduced_images_np = reproduced_images.permute(0, 2, 3, 1).cpu().numpy()

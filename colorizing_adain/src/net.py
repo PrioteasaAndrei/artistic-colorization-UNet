@@ -5,10 +5,52 @@ from IPython.display import Markdown, display
 #from colorizing_adain.src.UNUSED_function import calc_mean_std
 #from colorizing_adain.src.UNUSED_function import adaptive_instance_normalization as adain
 
-'''
-Encoder is a pretrained VGG up to relu4_1 as in the original paper (see 6.1 paper)
-'''
-class VGG_Encoder(torch.nn.Module):
+import warnings
+warnings.filterwarnings("ignore")
+import torch.nn as nn
+
+def l2normalize(v, eps = 1e-12):
+    return v / (v.norm() + eps)
+
+
+class VGG_Encoder(nn.Module):
+    def __init__(self, in_dim = 3, num_classes = 1000):
+        super(VGG_Encoder, self).__init__()
+        # feature extraction part
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels = in_dim, out_channels = 64, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 64, out_channels = 64, kernel_size = 3, stride = 1, padding = 1)
+        )
+        self.pool1 = nn.Sequential(
+            nn.ReLU(inplace = False),
+            nn.MaxPool2d(kernel_size = 2, stride = 2)
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels = 64, out_channels = 128, kernel_size = 3, stride = 1, padding = 1),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 128, out_channels = 128, kernel_size = 3, stride = 1, padding = 1)
+        )
+        self.pool2 = nn.Sequential(
+            nn.ReLU(inplace = False),
+            nn.MaxPool2d(kernel_size = 2, stride = 2)
+        )
+
+    def forward(self, x):                                   # shape: [B, 3, 224, 224]
+        conv1 = self.conv1(x)                               # shape: [B, 64, 224, 224]
+        pool1 = self.pool1(conv1)                           # shape: [B, 64, 112, 112]
+        conv2 = self.conv2(pool1)                           # shape: [B, 128, 112, 112]
+        pool2 = self.pool2(conv2)                           # shape: [B, 128, 56, 56]
+        return pool2
+    
+    def load_weights(self,path):
+        state_dict = torch.load(path, map_location=torch.device('cpu'))
+        # Extract layers until pool2
+        first_28_keys = list(state_dict.keys())[:28]
+        extracted_dict = {key: state_dict[key] for key in first_28_keys}
+        self.load_state_dict(extracted_dict, strict=False)
+
+""" class VGG_Encoder(torch.nn.Module):
     def __init__(self):
         super(VGG_Encoder, self).__init__()
         pretrained = torchvision.models.vgg19(pretrained=True)
@@ -30,7 +72,7 @@ class VGG_Encoder(torch.nn.Module):
         out_2 = self.relu2(out_1)
         out_3 = self.relu3(out_2)
         result = self.relu4(out_3)
-        return out_1, out_2, out_3, result
+        return out_1, out_2, out_3, result """
     
 
 ''' decoder is just the second part of an Unet'''
@@ -78,14 +120,39 @@ img = decode(t)
 concat_img((img[:12]).detach().cpu())
 """
 
+class Net_with_LabVGG(torch.nn.Module):
+    def __init__(self, encoder, decoder):
+        super(Net_with_LabVGG, self).__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+
+        # fix the encoder
+        #self.encoder.parameters().requires_grad = False
+
+    def forward(self, images):
+        # Forget about colorization for the moment: test on recreating colour images
+
+        if len(images)==2:          # Train time
+            colour_images = images[0]
+            grayscale_images = images[1]
+            encoded = self.encoder(colour_images)
+            reproduced_image=self.decoder(encoded)
+            loss = torch.nn.functional.mse_loss(colour_images, reproduced_image)
+            return reproduced_image,loss
+        elif len(images)==1:        # Test time
+            grayscale_images = images[0]
+            encoded = self.encoder(grayscale_images)
+            reproduced_image=self.decoder(encoded)
+            return reproduced_image
+        else:
+            raise ValueError("Wrong argument passed to formward method. It should be either a list of 2 batches of images for training or a list of 1 batch of image for testing.")
+
+# ------------------------------
+# ------------------------------
 
 class Net(torch.nn.Module):
     def __init__(self, encoder, decoder):
         super(Net, self).__init__()
-        #self.enc_1 = torch.nn.Sequential(*enc_layers[:4])  # input -> relu1_1
-        #self.enc_2 = torch.nn.Sequential(*enc_layers[4:11])  # relu1_1 -> relu2_1
-        #self.enc_3 = torch.nn.Sequential(*enc_layers[11:18])  # relu2_1 -> relu3_1
-        #self.enc_4 = torch.nn.Sequential(*enc_layers[18:31])  # relu3_1 -> relu4_1
         self.enc_1 = torch.nn.Sequential(encoder.relu1)  # input -> relu1
         self.enc_2 = torch.nn.Sequential(encoder.relu2)  # relu1 -> relu2
         self.enc_3 = torch.nn.Sequential(encoder.relu3)  # relu2 -> relu3
