@@ -35,19 +35,67 @@ class VGG_Encoder(nn.Module):
             nn.ReLU(inplace = False),
             nn.MaxPool2d(kernel_size = 2, stride = 2)
         )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels = 128, out_channels = 256, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 256, out_channels = 256, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 256, out_channels = 256, kernel_size = 3, stride = 1, padding = 1)
+        )
+        self.pool3 = nn.Sequential(
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace = False),
+            nn.MaxPool2d(kernel_size = 2, stride = 2)
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels = 256, out_channels = 512, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1)
+        )
+        self.pool4 = nn.Sequential(
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = False),
+            nn.MaxPool2d(kernel_size = 2, stride = 2)
+        )
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = True),
+            nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1)
+        )
+        """ self.pool5 = nn.Sequential(
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace = False),
+            nn.AdaptiveAvgPool2d((7, 7))
+        ) """
 
     def forward(self, x):                                   # shape: [B, 3, 224, 224]
         conv1 = self.conv1(x)                               # shape: [B, 64, 224, 224]
         pool1 = self.pool1(conv1)                           # shape: [B, 64, 112, 112]
         conv2 = self.conv2(pool1)                           # shape: [B, 128, 112, 112]
         pool2 = self.pool2(conv2)                           # shape: [B, 128, 56, 56]
-        return pool2
+        conv3 = self.conv3(pool2)                           # shape: [B, 256, 56, 56]
+        pool3 = self.pool3(conv3)                           # shape: [B, 256, 28, 28]
+        conv4 = self.conv4(pool3)                           # shape: [B, 512, 28, 28]
+        pool4 = self.pool4(conv4)                           # shape: [B, 512, 14, 14]
+        conv5 = self.conv5(pool4)                           # shape: [B, 512, 14, 14]
+        """  pool5 = self.pool5(conv5)                           # shape: [B, 512, 7, 7] """
+        return conv5
     
     def load_weights(self,path):
         state_dict = torch.load(path, map_location=torch.device('cpu'))
         # Extract layers until pool2
-        first_28_keys = list(state_dict.keys())[:28]
-        extracted_dict = {key: state_dict[key] for key in first_28_keys}
+        first_x_keys = list(state_dict.keys())[:86]
+        extracted_dict = {key: state_dict[key] for key in first_x_keys if not any(["conv3.4" in key,"conv3.6" in key, "conv4.4" in key,"conv4.6" in key, "conv5.4" in key,"conv5.6" in key])}
         self.load_state_dict(extracted_dict, strict=False)
 
 """ class VGG_Encoder(torch.nn.Module):
@@ -107,6 +155,10 @@ class Decoder(torch.nn.Module):
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(64, 64, (3, 3)),
             torch.nn.ReLU(),
+
+            # Added
+            torch.nn.Upsample(scale_factor=2, mode='nearest'),
+
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(64, 3, (3, 3)),
             torch.nn.Sigmoid(),

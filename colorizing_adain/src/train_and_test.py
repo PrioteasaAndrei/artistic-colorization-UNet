@@ -127,18 +127,17 @@ def train(network,cfg):
         writer.add_scalar('loss_style', loss_s.item(), i + 1) """
 
         if (epoch + 1) % cfg["save_model_interval"] == 0 or (epoch + 1) == cfg["max_iter"]:
-            state_dict_decoder = net.decoder.state_dict()
+            state_dict_decoder = network.decoder.state_dict()
             for key in state_dict_decoder.keys():
                 state_dict_decoder[key] = state_dict_decoder[key].to(torch.device('cpu'))
             torch.save(state_dict_decoder, save_dir /
                     'decoder_sigmoid_iter_{:d}.pth.tar'.format(epoch + 1))
-            for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
-                block = getattr(net, name)
-                state_dict_encoder = block.state_dict()
-                for key in state_dict_encoder.keys():
-                    state_dict_encoder[key] = state_dict_encoder[key].to(torch.device('cpu'))
-                torch.save(state_dict_encoder, save_dir /
-                        '{}_sigmoid_iter_{:d}.pth.tar'.format(name,epoch + 1))
+            
+            state_dict_encoder = network.encoder.state_dict()
+            for key in state_dict_encoder.keys():
+                state_dict_encoder[key] = state_dict_encoder[key].to(torch.device('cpu'))
+            torch.save(state_dict_encoder, save_dir /
+                    'encoder_sigmoid_iter_{:d}.pth.tar'.format(epoch + 1))
     writer.close()
 
 
