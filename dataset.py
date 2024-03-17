@@ -15,37 +15,39 @@ from torch.utils.data import Dataset, DataLoader
 torch.manual_seed(1)
 load_dotenv()
 
+vgg_mean = [0.485, 0.456, 0.406]
+vgg_std = [0.229, 0.224, 0.225]
+
+vgg_transform_direct = torchvision.transforms.Normalize(mean=vgg_mean, std=vgg_std)
+vgg_transorm_inverse = torchvision.transforms.Normalize(mean=[-vgg_mean[0]/vgg_std[0], -vgg_mean[1]/vgg_std[1], -vgg_mean[2]/vgg_std[2]],
+                                                          std=[1/vgg_std[0], 1/vgg_std[1], 1/vgg_std[2]])
 # Define a custom transformation to convert RGB to LAB color space
 class RGBtoLAB(object):
     def __call__(self, img):
-        # Convert the image from RGB to LAB color space
-        ## one image is grayscale just repeat channels
-        ## or shape[1] because it is batched?
         if img.shape[0] == 1:
             img = img.repeat(3,1,1)
-
-        ## color.rgb2lab expects shape {H, W, C}
-        ## img is shape {C, H, W}
-        ## lab_img is shape {C, H, W}
-        lab_img = color.rgb2lab(img.permute(1, 2, 0).cpu().numpy()).transpose(2, 0, 1) 
-        lab_img[0,:,:] = lab_img[0,:,:] / 100  # Scale L channel to [0, 1] | this is from 0 to 100
-        lab_img[1:, :, :] = (lab_img[1:, :, :] + 128) / 255  # Scale a and b channels to [0, 1] | are in -128 127 range
         
+        lab_img = color.rgb2lab(img.permute(1, 2, 0).cpu().numpy()).transpose(2, 0, 1) 
+        lab_img[0, :, :] = lab_img[0, :, :] / 100  # Scale L channel to [0, 1]
+        lab_img[1, :, :] = (lab_img[1, :, :] + 128) / 255  # Scale a and b channels to [0, 1]
+        lab_img[2, :, :] = (lab_img[2, :, :] + 128) / 255 # Scale a and b channels to [0, 1]        
         return torch.tensor(lab_img) 
-     
+    
+
 class LABtoRGB(object):
+    '''
+    Tested and it works fine
+    '''
     def __call__(self, lab_img):
         # Scale the LAB channels back to their original ranges
         lab_img[0, :, :] = lab_img[0, :, :] * 100  # Scale L channel back to [0, 100]
         lab_img[1:, :, :] = lab_img[1:, :, :] * 255 - 128  # Scale a and b channels back to [-128, 127]
         
-        # Convert LAB image to RGB color space
-        ## TODO: not sure if transpose is necessary
         lab_img = lab_img.permute(1, 2, 0)
         rgb_img = color.lab2rgb(lab_img.cpu().numpy())
 
         # Convert the resulting RGB image to unnormalized format (0-255)
-        rgb_img_unnormalized = (rgb_img * 255).astype(np.uint8)
+        rgb_img_unnormalized = (rgb_img * 256).astype(np.uint8)
 
         return torch.tensor(rgb_img_unnormalized).permute(2, 0, 1)
 
@@ -54,20 +56,37 @@ class LABtoGray(object):
     def __call__(self, lab_img):
         # Convert LAB image to grayscale
         gray_img = lab_img[0:1, :, :]  # Extract the L channel (1st channel)
+        ## repeat the grayscale image to 3 channels
+        gray_img = gray_img.repeat(3,1,1)
         return torch.tensor(gray_img)
 
+
+'''
+normalize to mean=[0.485, 0.456, 0.406] and stdev=[0.229,0.224, 0.225]. This is expected by the pretrained VGG.
+See: https://pytorch.org/vision/main/models/generated/torchvision.models.vgg19.html
+'''
+
 transform_train = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((256, 256)),
+    torchvision.transforms.Resize((256, 256), interpolation=Image.BILINEAR),
     torchvision.transforms.ToTensor(),
-    RGBtoLAB()
+    RGBtoLAB(),
+    vgg_transform_direct
 ])
 
+## TODO: here we have grayscale images and the transform doesnt seem to work but change that later to three channel iamges
 transform_test = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((256, 256)),
+    torchvision.transforms.Resize((256, 256), interpolation=Image.BILINEAR),
     torchvision.transforms.ToTensor(),
     RGBtoLAB(),
     LABtoGray(),
+    vgg_transform_direct
 ])
+
+## tested | works fine
+transform_inverse = torchvision.transforms.Compose([
+    vgg_transorm_inverse,
+    LABtoRGB()
+    ])
 
 # Define a custom dataset class for automatic batching
 class ColorizationDataset(Dataset):
@@ -116,7 +135,7 @@ def prepare_dataset(train_size=10,test_size=10,batch_size=4):
     # transformed_train = transformed_train.shuffle()
 
     ## normalization check
-    normalization_check(list(transformed_train.take(2)), list(transformed_test.take(2)))
+    # normalization_check(list(transformed_train.take(2)), list(transformed_test.take(2)))
  
     print("Dataset loaded successfully")
     return transformed_train.take(train_size),transformed_test.take(test_size)
