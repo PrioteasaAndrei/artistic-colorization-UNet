@@ -32,6 +32,12 @@ class VGG_Encoder(torch.nn.Module):
         out_2 = self.relu2_1(out_1)
         out_3 = self.relu3_1(out_2)
         result = self.relu4_1(out_3)
+        ## print shapes
+        # print("Output 1",out_1.shape)
+        # print("Output 2",out_2.shape)
+        # print("Output 3",out_3.shape)
+        # print("Output 4",result.shape)
+
         return out_1, out_2, out_3, result
 
 def mean_and_std(x):
@@ -49,48 +55,18 @@ class Decoder(torch.nn.Module):
     def __init__(self):
         super(Decoder, self).__init__()
         
-        ## w/o batchnorm
-        # self.decode = torch.nn.Sequential(
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(512, 256, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.Upsample(scale_factor=2, mode='nearest'),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(256, 256, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(256, 256, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(256, 256, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(256, 128, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.Upsample(scale_factor=2, mode='nearest'),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(128, 128, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(128, 64, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.Upsample(scale_factor=2, mode='nearest'),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(64, 64, (3, 3)),
-        #     torch.nn.ReLU(),
-        #     torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-        #     torch.nn.Conv2d(64, 3, (3, 3)),
-        # )
-
-        ## w/ batchnorm
-        self.decode = torch.nn.Sequential(
+        self.block1 = torch.nn.Sequential(
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             torch.nn.Conv2d(512, 256, (3, 3)),
             torch.nn.BatchNorm2d(256),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.Upsample(scale_factor=2, mode='nearest'),
+
+        )
+
+        self.block2 = torch.nn.Sequential(
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-            torch.nn.Conv2d(256, 256, (3, 3)),
+            torch.nn.Conv2d(512, 256, (3, 3)),
             torch.nn.BatchNorm2d(256),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
@@ -106,8 +82,12 @@ class Decoder(torch.nn.Module):
             torch.nn.BatchNorm2d(128),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.Upsample(scale_factor=2, mode='nearest'),
+
+        )
+
+        self.block3 = torch.nn.Sequential(
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-            torch.nn.Conv2d(128, 128, (3, 3)),
+            torch.nn.Conv2d(256, 128, (3, 3)),
             torch.nn.BatchNorm2d(128),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
@@ -115,19 +95,80 @@ class Decoder(torch.nn.Module):
             torch.nn.BatchNorm2d(64),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.Upsample(scale_factor=2, mode='nearest'),
+
+        )
+
+        self.block4 = torch.nn.Sequential(
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
-            torch.nn.Conv2d(64, 64, (3, 3)),
+            torch.nn.Conv2d(128, 64, (3, 3)),
             torch.nn.BatchNorm2d(64),  # BatchNorm2d added
             torch.nn.ReLU(),
             torch.nn.ReflectionPad2d((1, 1, 1, 1)),
             # torch.nn.Conv2d(64, 3, (3, 3)),
             ## predict only a and b channels
-            torch.nn.Conv2d(64, 2, (3, 3)),
-    )
+            torch.nn.Conv2d(64, 2, (3, 3))
+        )
+
+        ## w/ batchnorm
+    #     self.decode = torch.nn.Sequential(
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(512, 256, (3, 3)),
+    #         torch.nn.BatchNorm2d(256),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+
+    #         torch.nn.Upsample(scale_factor=2, mode='nearest'),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(256, 256, (3, 3)),
+    #         torch.nn.BatchNorm2d(256),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(256, 256, (3, 3)),
+    #         torch.nn.BatchNorm2d(256),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(256, 256, (3, 3)),
+    #         torch.nn.BatchNorm2d(256),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(256, 128, (3, 3)),
+    #         torch.nn.BatchNorm2d(128),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+
+    #         torch.nn.Upsample(scale_factor=2, mode='nearest'),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(128, 128, (3, 3)),
+    #         torch.nn.BatchNorm2d(128),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(128, 64, (3, 3)),
+    #         torch.nn.BatchNorm2d(64),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+
+    #         torch.nn.Upsample(scale_factor=2, mode='nearest'),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         torch.nn.Conv2d(64, 64, (3, 3)),
+    #         torch.nn.BatchNorm2d(64),  # BatchNorm2d added
+    #         torch.nn.ReLU(),
+    #         torch.nn.ReflectionPad2d((1, 1, 1, 1)),
+    #         # torch.nn.Conv2d(64, 3, (3, 3)),
+    #         ## predict only a and b channels
+    #         torch.nn.Conv2d(64, 2, (3, 3)),
+    # )
 
         
     def forward(self, x):
-        return self.decode(x)
+        '''
+        Wont be used in the UNET
+        '''
+        x = self.block1(x)
+        print("Block 1",x.shape)
+        x = self.block2(x)
+        print("Block 2",x.shape)
+        x = self.block3(x)
+        print("Block 3",x.shape)
+        x = self.block4(x)
+        print("Block 4",x.shape)
+        return x
     
 class Unet(torch.nn.Module):
     def __init__(self):
@@ -138,4 +179,10 @@ class Unet(torch.nn.Module):
         
     def forward(self, x):
         out_1, out_2, out_3, out_4 = self.encoder(x)
-        return self.decoder(out_4)
+
+        decoder_block1 = self.decoder.block1(out_4)
+        decoder_block2 = self.decoder.block2(torch.cat((decoder_block1, out_3), 1))
+        decoder_block3 = self.decoder.block3(torch.cat((decoder_block2, out_2), 1))
+        return self.decoder.block4(torch.cat((decoder_block3, out_1), 1))        
+
+        # return self.decoder(out_4)
