@@ -18,12 +18,12 @@ preserve_color: 1
 
 lr: 1e-4
 lr_decay: 5e-5
-train_size: 200
+train_size: 500
 test_size: 4
-save_model_interval: 1
+save_model_interval: 10
 save_dir: "model/model_storage/"       # Directory to save the model
 log_dir: "model/logs/"                  # Directory to save the tensorboard logs
-max_iter: 10
+max_iter: 100
 batch_size: 16
 decoder: "model/model_storage/decoder_sigmoid_iter_10.pth.tar"
 enc_1: "model/model_storage/enc_1_sigmoid_iter_10.pth.tar"
