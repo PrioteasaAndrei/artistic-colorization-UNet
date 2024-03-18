@@ -4,3 +4,7 @@ colorizing_adain/__pycache__/
 colorizing_adain/model/model_storage/
 colorizing_adain/model/logs/
 *.tar
+*.pth
+/colorizing_adain/src/__pycache__/
+/colorizing_adain/data/output_dir/
+*/.env
