@@ -67,19 +67,19 @@ See: https://pytorch.org/vision/main/models/generated/torchvision.models.vgg19.h
 '''
 
 transform_train = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((256, 256), interpolation=Image.BILINEAR),
-    torchvision.transforms.ToTensor(),
-    RGBtoLAB(),
-    vgg_transform_direct
+    torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+    torchvision.transforms.ToTensor()
+    #RGBtoLAB(),
+    #vgg_transform_direct
 ])
 
 ## TODO: here we have grayscale images and the transform doesnt seem to work but change that later to three channel iamges
 transform_test = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((256, 256), interpolation=Image.BILINEAR),
-    torchvision.transforms.ToTensor(),
-    RGBtoLAB(),
-    LABtoGray(),
-    vgg_transform_direct
+    torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+    torchvision.transforms.ToTensor()
+    #RGBtoLAB(),
+    #LABtoGray(),
+    #vgg_transform_direct
 ])
 
 ## tested | works fine
