@@ -78,7 +78,7 @@ transform_test = torchvision.transforms.Compose([
     torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
     torchvision.transforms.ToTensor(),
     RGBtoLAB(),
-    LABtoGray()
+    # LABtoGray()
     #vgg_transform_direct
 ])
 
