@@ -66,19 +66,19 @@ See: https://pytorch.org/vision/main/models/generated/torchvision.models.vgg19.h
 '''
 
 ## TODO: add random crop rotations and other augumentations
-def get_transforms(colorspace='RGB'):
+def get_transforms(colorspace='RGB',resolution=(128,128)):
     transform_train, transform_test = None, None
 
     if colorspace == 'RGB':
         transform_train = torchvision.transforms.Compose([
-            torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+            torchvision.transforms.Resize(resolution, interpolation=Image.BILINEAR),
             torchvision.transforms.ToTensor(),
             # RGBtoLAB()
             #vgg_transform_direct
         ])
 
         transform_test = torchvision.transforms.Compose([
-            torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+            torchvision.transforms.Resize(resolution, interpolation=Image.BILINEAR),
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Grayscale(num_output_channels=1)
             # RGBtoLAB(),
@@ -87,19 +87,21 @@ def get_transforms(colorspace='RGB'):
         ])
     elif colorspace == 'LAB':
         transform_train = torchvision.transforms.Compose([
-            torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+            torchvision.transforms.Resize(resolution, interpolation=Image.BILINEAR),
             torchvision.transforms.ToTensor(),
             RGBtoLAB()
             #vgg_transform_direct
         ])
 
         transform_test = torchvision.transforms.Compose([
-            torchvision.transforms.Resize((128, 128), interpolation=Image.BILINEAR),
+            torchvision.transforms.Resize(resolution, interpolation=Image.BILINEAR),
             torchvision.transforms.ToTensor(),
             RGBtoLAB(),
             LABtoGray()
             #vgg_transform_direct
         ])
+    else:
+        raise ValueError('Invalid colorspace. Please choose either RGB or LAB')
         
     return transform_train, transform_test
 
@@ -134,7 +136,7 @@ def check_range(tensor):
     return (tensor.min() >= 0) and (tensor.max() <= 1)
 
 
-def prepare_dataset(train_size=10,test_size=10,batch_size=4,colorspace='RGB'):
+def prepare_dataset(train_size=10,test_size=10,batch_size=4,colorspace='RGB',resolution=(128,128)):
     '''
     check out this for docs: https://huggingface.co/docs/datasets/stream
 
@@ -148,7 +150,7 @@ def prepare_dataset(train_size=10,test_size=10,batch_size=4,colorspace='RGB'):
     - colorization_dataloader_test: DataLoader
     '''
 
-    transform_train, transform_test = get_transforms(colorspace)
+    transform_train, transform_test = get_transforms(colorspace,resolution=resolution)
 
     login_token = os.getenv('HUGGING_FACE_TOKEN')
     dataset_train = load_dataset("imagenet-1k",split='train',use_auth_token=login_token,streaming=True)
