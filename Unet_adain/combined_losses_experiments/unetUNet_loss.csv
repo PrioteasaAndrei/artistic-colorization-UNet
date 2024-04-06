@@ -1,2 +1,0 @@
-epoch,training_combined_loss,training_colorization_loss,training_style_loss,validation_combined_loss,validation_colorization_loss,validation_style_loss
-0,1.6775089025497436,1.6775089025497436,8.301819798361976e-06,1.505700659751892,1.505700659751892,6.208957984199515e-06
