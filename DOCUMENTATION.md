@@ -16,9 +16,6 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 
 ***
 
-<p align="left">
-  <img src="./images/architecture_map.png" width="2000" />
-</p>
 
 ## Table of contents
 
@@ -52,6 +49,26 @@ This idea of learning the AdaIN parameters comes from NVIDIA's 2019's [StyleGAN 
 
 
 # <a name="approach"></a>4. Approach
+## <a name="architecture"></a>4.1 The Architecture
+<p align="left">
+  <img src="./images/architecture_map.png" width="2000" />
+</p>
+Let us explain our architecture step by step.
+
+#### The baseline UNet
+The main core of the NN is the central UNet. UNet is still state of the art at this day and it's particularly effective for segmenting images. This knowledge is exactly what we needed for our colorization task.
+The encoder consists in convolutions with 3x3 filters, always followed by ReLu and batch normalization, which are indicated in the picture by the orange slices on the right side of the convolution blocks.
+After every set of convolutions a max pooling layer halves the feature maps dimensions.
+The bottleneck maintains a reasonable size: 1/16 of the original size. As we work with 128x128 images due to computational cost limitations, this means that the bottleneck feature maps have size 8x8.
+
+The decoder doesn't exactly mirror the encoder, but present the same jumps in number of chanels and dimension of the feature maps. Upsampling is done through transpose convolution. Relu and batch normalization are applied also in the decoder as can be seen by the orange slices.
+
+The most notable featue of the UNet are the skip connections. We have five. Every time we concatenate the respective feature maps in the encoder to the newly upscaled featuremaps of the decoder. Then we fuse them together with 1x1 convolutions.
+
+This network alone was able to perform recreation of images and colorisation.
+
+#### The addition of Adaptive instance normalization
+
 
 
 # <a name="conclusion"></a>5. Conclusion
