@@ -5,7 +5,7 @@
 | Name and surname    |  Matric. Nr. | GitHub username  |   e-mail address   |
 |:--------------------|:-------------|:-----------------|:-------------------|
 | Alexander Nyamekye | <span style="color:red"> *(?)* </span>| nalexunder | alexander.nyamekye@stud.uni-heidelberg.de|
-| Cristi Andrei Prioteasa | <span style="color:red"> *(?)* </span>| prio | cristi.prioteasa@stud.uni-heidelberg.de|
+| Cristi Andrei Prioteasa | <span style="color:red"> 	4740844 </span>| PrioteasaAndrei | cristi.prioteasa@stud.uni-heidelberg.de|
 | Matteo Malvestiti | 4731243| Matteo-Malve | matteo.malvestiti@stud.uni-heidelberg.de|
 | Jan Smolen | <span style="color:red"> *(?)* </span>| <span style="color:red"> *(?)* </span> | wm315@stud.uni-heidelberg.de|
 
@@ -26,7 +26,8 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 5. [Conclusion](#conclusion)
 
 # <a name="introduction"></a>1. Introduction
-Our sophisticated network allows to colorise grayscale images and also to transfer a style to it, thanks to Adaptive Instance normalization layers (AdaIN) displaced both in the encoder and the decoder part of our UNet.
+
+Colorization of grayscale images has been an area of significant interest in computer vision, with applications ranging from photo restoration to artistic expression. We propose an approach to colorizing grayscale images in various artistic styles using a U-Net architecture enhanced with Adaptive Instance Normalization (AdaIN) layers. U-Net, known for its effectiveness in semantic segmentation tasks, provides an ideal framework for our colorization task due to its ability to capture spatial dependencies while preserving fine details. By incorporating AdaIN layers into the U-Net architecture, we introduce the capability to adaptively transfer artistic styles (here we use style to refer to color choices) from reference images to grayscale inputs. AdaIN enables the decoupling of content and style in feature representations, allowing us to leverage the content information from grayscale images while infusing them with the stylistic characteristics extracted from reference color images. This style-guided colorization approach opens up new possibilities for artistic expression, allowing users to apply various painting styles, from impressionism to surrealism, to grayscale inputs.
 
 
 # <a name="motivation"></a>2. Motivation
@@ -67,8 +68,49 @@ The most notable featue of the UNet are the skip connections. We have five. Ever
 
 This network alone was able to perform recreation of images and colorisation.
 
+
+
+The UNet architecture with AdaIN layers presented here is designed for grayscale image colorization in different artistic styles. It consists of an encoder-decoder structure with skip connections, allowing for both feature extraction and spatial detail preservation. The network expects input in the form of $[C,H,W]$, where the number of channels $C$ can be 2 for the LAB colorspace and 3 for the RGB colorspace. We chose to train our model using the RGB color space because the LAB tranformation introduce a number of artefacts from numerical instability of the transformation which yielded poorer results.
+
 #### The addition of Adaptive instance normalization
 
+## <a name="architecture"></a>4.2 Training & Dataset
 
+We decided to use the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset for our training. For our style colorization and later fine-tuning we use the [wikiart](https://huggingface.co/datasets/huggan/wikiart) dataset. We chose a training size of 5000 samples and train for 100 epochs using an Adam optimizer with a learning rate of $1e^{-3}$. We further fine tune on ... artistic images.
+
+** insert graph loses from matteo here **
+
+## <a name="architecture"></a>4.2 Experiments and hyperparameters
+
+Since we didn't have available computing resources, we used a personal NVIDIA GeForce RTX 3050TI mobile, 4096MiB VRAM and an Mac M1 for training. (16 GB RAM). This limits our ability in terms of resolution of the input images. Training with patches of size $256 \times 256$ yielded poor results even after prologed training, but using patches of size $128 \times 128$ yields decent results which generalize.
+
+We experiment with two types of losses: MSE against the original image and [Learned Perceptual Similarty](https://github.com/richzhang/PerceptualSimilarity), as a way to encourage the network to learn semanting colorization information about the image instead of faithfully reproducting the colors of the original image. We use a weighted sum of both losses for our training.
+
+When using only LPIPS for our loss function, our output images present artefacts. We would need to further investigate the causes of this.
+
+<p align="left">
+  <img src="./Unet_adain/results_perceptual_only/dog_no_style.png" width="2000" />
+  <img src="./Unet_adain/results_perceptual_only/magazine_no_style.png" width="2000" />
+</p>
+ 
+When using only MSE for our loss function we get better results, we obtain more meaningful results, but with a considerable greater amount of training. Thus, we settle on a weighed mean of the two which yields good results.
+
+** TODO: insert here our best results **
+<p align="left">
+  <img src="./Unet_adain/results_combined_loss/frog_no_style.png" width="2000" />
+  <img src="./Unet_adain/results_combined_loss/dog_no_style.png" width="2000" />
+</p>
+
+
+There are also images for which colorization fails completly and outputs noise:
+
+<p align="left">
+  <img src="./Unet_adain/results_combined_loss/leopard_no_style.png" width="2000" />
+</p>
+
+
+** TODO: insert results from style transfer ** 
 
 # <a name="conclusion"></a>5. Conclusion
+
+In conclusion, we have presented a novel UNet architecture enhanced with Adaptive Instance Normalization (AdaIN) layers for grayscale image colorization in diverse artistic styles. 
