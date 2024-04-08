@@ -15,6 +15,10 @@ from torch.utils.data import Dataset, DataLoader
 torch.manual_seed(1)
 load_dotenv()
 
+device = torch.device("cuda" if torch.cuda.is_available()
+                else "mps" if torch.backends.mps.is_built() else "cpu")
+print(f"Device: {device}")
+
 vgg_mean = [0.485, 0.456, 0.406]
 vgg_std = [0.229, 0.224, 0.225]
 
@@ -130,6 +134,25 @@ class ColorizationDataset(Dataset):
             gray_scale = self.data[idx]['grayscale_image']
             return {'image': image, 'grayscale_image': gray_scale}
 
+# Define a custom dataset class for automatic batching
+class StylesDataset(Dataset):
+    def __init__(self, data, test=False):
+        self.data = data
+        self.test = test
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        image = self.data[idx]['image']
+        style = self.data[idx]['style']
+        if self.test:
+            return {'image': image}
+        else:
+            gray_scale = self.data[idx]['grayscale_image']
+            return {'image': image, 'grayscale_image': gray_scale, 'style':style}
+
+
 
 
 def check_range(tensor):
@@ -202,6 +225,92 @@ def prepare_dataloader(train_data,test_data,batch_size=4):
     
     print("Data loader prepared successfully")
     return colorization_dataloader_train, colorization_dataloader_test
+
+
+def prepare_styles_dataloader(train_data,test_data,batch_size=4):
+    '''
+    function description
+
+    returns:
+    - colorization_dataloader_train: DataLoader
+    - colorization_dataloader_test: DataLoader
+    '''
+    ## prepare data loader
+
+
+    ## NOTE: remember that there are some grayscale images in the dataset that need to be filtered out
+    ## NOTE: after filtering size may be different from the original size
+   
+    filtered_train_data = []
+    filtered_test_data = []
+
+    for entry in list(train_data):
+        if entry['image'].shape[0] == 3:
+            filtered_train_data.append(entry)
+    
+    for entry in list(test_data):
+        if entry['image'].shape[0] == 3:
+            filtered_test_data.append(entry)
+
+    styles_dataset_train = StylesDataset(filtered_train_data)
+    styles_dataloader_train = DataLoader(styles_dataset_train, batch_size=batch_size, shuffle=True, num_workers=4)
+
+    styles_dataset_test = StylesDataset(filtered_test_data)
+    styles_dataloader_test = DataLoader(styles_dataset_test, batch_size=batch_size, shuffle=False, num_workers=4)
+    
+    print("Data loader prepared successfully")
+    return styles_dataloader_train, styles_dataloader_test
+
+
+
+def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='RGB',resolution=(128,128)):
+    '''
+    check out this for docs: https://huggingface.co/docs/datasets/stream
+
+    you need to make list(output)
+    the returned shapes of the images should be:
+    train: [3,256,256]
+    test: [1,256,256]
+
+    returns:
+    - colorization_dataloader_train: DataLoader
+    - colorization_dataloader_test: DataLoader
+    '''
+
+    transform_train, transform_test = get_transforms(colorspace,resolution=resolution)
+
+
+    login_token = os.getenv('HUGGING_FACE_TOKEN')
+    data = load_dataset('huggan/wikiart', split='train', streaming=True)
+    shuffled_dataset = data.shuffle(buffer_size=10_000, seed=42)
+    
+    #no test split provided, needs to be done manually
+    dataset_length =  81444
+    test_ratio = 0.2
+    test_length = int(dataset_length * test_ratio)
+    dataset_test = shuffled_dataset.take(test_length)
+    dataset_train = shuffled_dataset.skip(test_length)
+
+
+    transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'style': torch.tensor(x['style'])})
+    transformed_test = dataset_test.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'style': torch.tensor(x['style'])})
+    
+
+    print("Dataset loaded successfully")
+    return transformed_train.take(train_size),transformed_test.take(test_size)
+
+
+
+
+
+    ## map resize transformation before take 
+    transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'label': torch.tensor(x['label'])})
+    transformed_test = dataset_test.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'label': torch.tensor(x['label'])})
+
+
+
+
+
 
 
 def normalization_check(transformed_train_list, transformed_test_list):
