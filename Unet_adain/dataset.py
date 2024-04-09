@@ -243,11 +243,11 @@ def prepare_styles_dataloader(train_data,test_data,batch_size=4):
     filtered_train_data = []
     filtered_test_data = []
 
-    for entry in list(train_data):
+    for entry in train_data:
         if entry['image'].shape[0] == 3:
             filtered_train_data.append(entry)
     
-    for entry in list(test_data):
+    for entry in test_data:
         if entry['image'].shape[0] == 3:
             filtered_test_data.append(entry)
 
@@ -280,15 +280,14 @@ def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='R
 
 
     login_token = os.getenv('HUGGING_FACE_TOKEN')
-    data = load_dataset('huggan/wikiart', split='train', streaming=True)
+    data = load_dataset('huggan/wikiart', split='train', use_auth_token=login_token, streaming=True)
     shuffled_dataset = data.shuffle(buffer_size=10_000, seed=42)
+    shuffled_dataset = data.take(train_size+test_size)
     
-    #no test split provided, needs to be done manually
-    dataset_length =  81444
-    test_ratio = 0.2
-    test_length = int(dataset_length * test_ratio)
-    dataset_test = shuffled_dataset.take(test_length)
-    dataset_train = shuffled_dataset.skip(test_length)
+ 
+    
+    dataset_train = shuffled_dataset.take(train_size)
+    dataset_test = shuffled_dataset.skip(train_size)
 
 
     transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']),'style': torch.tensor(x['style'])})
@@ -296,8 +295,7 @@ def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='R
     
 
     print("Dataset loaded successfully")
-    return transformed_train.take(train_size),transformed_test.take(test_size)
-
+    return transformed_train, transformed_test
 
 
 
