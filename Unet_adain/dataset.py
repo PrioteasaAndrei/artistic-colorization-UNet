@@ -280,14 +280,13 @@ def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='R
 
 
     login_token = os.getenv('HUGGING_FACE_TOKEN')
-    data = load_dataset('huggan/wikiart', split='train', use_auth_token=login_token, streaming=True)
-    shuffled_dataset = data.shuffle(buffer_size=10_000, seed=42)
-    shuffled_dataset = data.take(train_size+test_size)
+    data = load_dataset('huggan/wikiart', split='train', use_auth_token=login_token, streaming=True).take(train_size+test_size)
+   
     
  
     
-    dataset_train = shuffled_dataset.take(train_size)
-    dataset_test = shuffled_dataset.skip(train_size)
+    dataset_train = data.take(train_size)
+    dataset_test = data.skip(train_size)
 
 
     transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']),'style': torch.tensor(x['style'])})
