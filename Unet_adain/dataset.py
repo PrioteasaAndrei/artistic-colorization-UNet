@@ -303,16 +303,6 @@ def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='R
 
 
 
-    ## map resize transformation before take 
-    transformed_train = dataset_train.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'label': torch.tensor(x['label'])})
-    transformed_test = dataset_test.map(lambda x: {'image': transform_train(x['image']), 'grayscale_image': transform_test(x['image']),'label': torch.tensor(x['label'])})
-
-
-
-
-
-
-
 def normalization_check(transformed_train_list, transformed_test_list):
   
     assert check_range(transformed_train_list[0]['image']) == True

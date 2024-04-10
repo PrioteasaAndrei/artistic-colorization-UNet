@@ -6,7 +6,7 @@ Our group:
 | Name and surname    |  Matric. Nr. | GitHub username  |   e-mail address   |
 |:--------------------|:-------------|:-----------------|:-------------------|
 | Alexander Nyamekye | <span style="color:red"> *(?)* </span>| <span style="color:red"> *(?)* </span> | alexander.nyamekye@stud.uni-heidelberg.de|
-| Cristi Andrei Prioteasa | <span style="color:red"> *(?)* </span>| <span style="color:red"> *(?)* </span> | cristi.prioteasa@stud.uni-heidelberg.de|
+| Cristi Andrei Prioteasa | <span style="color:red"> 4740844 </span>| <span style="color:red"> PrioteasaAndrei </span> | cristi.prioteasa@stud.uni-heidelberg.de|
 | Matteo Malvestiti | 4731243| Matteo-Malve | matteo.malvestiti@stud.uni-heidelberg.de|
 | Jan Smolen | <span style="color:red"> *(?)* </span>| <span style="color:red"> *(?)* </span> | wm315@stud.uni-heidelberg.de|
 
