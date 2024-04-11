@@ -37,6 +37,30 @@ def plot_both(image1,image2,save_name=None):
 
     plt.show()
 
+def plot_three(image1,image2,image3,save_name=None):
+    plt.figure(figsize=(15, 5))
+
+    # Plot first image
+    plt.subplot(1, 3, 1)
+    plt.imshow(image1)
+    plt.title('Original')
+
+    # Plot second image
+    plt.subplot(1, 3, 2)
+    plt.imshow(image2)
+    plt.title('Style')
+
+    # Plot third image
+    plt.subplot(1, 3, 3)
+    plt.imshow(image3)
+    plt.title('Colorized')
+
+    if save_name:
+        plt.savefig(save_name)
+
+
+    plt.show()
+
 
 def compose_output(original_image, recreated_image):
     print(original_image.shape)
