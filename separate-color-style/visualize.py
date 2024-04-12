@@ -18,6 +18,8 @@ import dataset
 device = torch.device("cuda" if torch.cuda.is_available()
                 else "mps" if torch.backends.mps.is_built() else "cpu")
 
+
+
 def plot_both(image1,image2,save_name=None):
     plt.figure(figsize=(10, 5))
 
@@ -47,7 +49,7 @@ def plot_three(image1,image2,image3,save_name=None):
     # Plot second image
     plt.subplot(1, 3, 2)
     plt.imshow(image2)
-    plt.title('Style')
+    plt.title('Train')
 
     # Plot third image
     plt.subplot(1, 3, 3)
