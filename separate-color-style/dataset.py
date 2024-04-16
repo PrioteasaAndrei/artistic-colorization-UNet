@@ -116,42 +116,6 @@ transform_inverse = torchvision.transforms.Compose([
     LABtoRGB()
     ])
 
-# Define a custom dataset class for automatic batching
-class ColorizationDataset(Dataset):
-    def __init__(self, data, test=False):
-        self.data = data
-        self.test = test
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        image = self.data[idx]['image']
-        if self.test:
-            return {'image': image}
-        else:
-            gray_scale = self.data[idx]['grayscale_image']
-            return {'image': image, 'grayscale_image': gray_scale}
-
-# Define a custom dataset class for automatic batching
-class StylesDataset(Dataset):
-    def __init__(self, data, test=False):
-        self.data = data
-        self.test = test
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        image = self.data[idx]['image']
-        style = self.data[idx]['style']
-        if self.test:
-            return {'image': image}
-        else:
-            #gray_scale = self.data[idx]['grayscale_image']
-            return {'image': image, 'style':style} #grayscale_image': gray_scale, 
-
-
 
 
 def check_range(tensor):
