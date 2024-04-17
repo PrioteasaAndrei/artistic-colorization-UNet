@@ -111,6 +111,21 @@ There are also images for which colorization fails completly and outputs noise:
 
 ** TODO: insert results from style transfer ** 
 
+We also observe an interesting behoviour in the latent space. Since the style encoder is fed RGB images, which contain both texture, contour and color information and the UNet is much more expressive and takes the main training effort, all imagese are mapped to an almostly 0 vector.
+
+<p align="center">
+  <img src="./images/null_latent_space.jpeg" width="2000" />
+  Samples from the latent space of the style encoder
+</p>
+
+After downsizing the UNet i.e. making it less expressive, we see that the latent space of the encoder is diverse.
+
+
+<p align="center">
+  <img src="./images/non_null_latent_space.jpeg" width="2000" />
+  Samples from the latent space of the style encoder
+</p>
+
 # <a name="conclusion"></a>5. Conclusion
 
 In conclusion, we have presented a novel UNet architecture enhanced with Adaptive Instance Normalization (AdaIN) layers for grayscale image colorization in diverse artistic styles. 
