@@ -23,7 +23,10 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 2. [Motivation](#motivation)
 3. [Related Work](#related_work)
 4. [Approach](#approach)
-5. [Conclusion](#conclusion)
+5. [Troubles, experiments and reflections: The evolution of the project](#troubles)
+6. [The final Model](#final-model)
+7. [Conclusion](#conclusion)
+8. [Appendix](#appendix)
 
 # <a name="introduction"></a>1. Introduction
 
@@ -72,14 +75,7 @@ The decoder doesn't exactly mirror the encoder, but present the same jumps in nu
 
 The most notable featue of the UNet are the skip connections. We have five. Every time we concatenate the respective feature maps in the encoder to the newly upscaled featuremaps of the decoder. Then we fuse them together with 1x1 convolutions.
 
-This network alone was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
-Below you can see:
-1) Loss curves for only UNet tasked with colorization
-2) Colorization performance on a training image
-3) Colorization performance on a test image (never seen before)
-<p align="left">
-  <img src="./images/colorization_trsize2000_valsize200_loss_plot.png" width="500" />
-  <table align="right">
+<table align="right">
   <tr>
     <th>Train dataset size</th>
     <td>2000</td>
@@ -91,6 +87,10 @@ Below you can see:
   <tr>
     <th>Batch size</th>
     <td>16</td>
+  </tr>
+  <tr>
+    <th>Epochs trained</th>
+    <td><span style="color:orange">231</span></td>
   </tr>
   <tr>
     <th>Colorspace</th>
@@ -105,6 +105,14 @@ Below you can see:
     <td>Dropout used as regul.</td>
   </tr>
 </table>
+
+This network alone was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
+Below you can see:
+1) Loss curves for only UNet tasked with colorization
+2) Colorization performance on a training image
+3) Colorization performance on a test image (never seen before)
+<p align="left">
+  <img src="./images/colorization_trsize2000_valsize200_loss_plot.png" width="500" />
   <img src="./images/colorization_training_bird.png" width="500" />
   <img src="./images/colorization_validation_elephants.png" width="500" />
 </p>
@@ -172,14 +180,12 @@ There are also images for which colorization fails completly and outputs noise:
 ** TODO: insert results from style transfer ** 
 
 # <a name="troubles"></a>5. Troubles, experiments, reflections and evolution of the project
-In this section we discuss some experiments, like some alternative approaches to training, that didn't make it into the final cut, but were essential for us in order to understand the nature of the problem and of the architecture. This is a reorganized history of the thought process that led us to the final prothotype.
+In this section we present a reorganized history of the thought process that led us to the final prothotype.
+This will only contain the most crucial experiments, those from which we learned somthing that brought us a step closer to out goal. Many more experiments were done, like those on the LAB colorspace, and they can be found in the [Appendix]().
 
-#### The problem that originated rethinking
-In very simple words, AdaIN was neglected by the baseline UNet. After few iterations the latent space of the AdaIN encoder was all put to zero. A sign that the network was suppressing it, in favour of pure reconsruction.
-The consequence is that at inference phase, when passing different style images, no difference would be observed.
+### The problem that originated the need of rethinking
 
-In the following picture you can see the histograms of the values inside the latent space for 10 random test images, sampled from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset.
-<table align="left">
+<table align="right">
   <tr>
     <th>Train dataset size</th>
     <td>50000</td>
@@ -204,8 +210,14 @@ In the following picture you can see the histograms of the values inside the lat
     <th><span style="color:orange"> Latent space dimension</span></th>
     <td><span style="color:orange"> 128</span></td>
   </tr>
-  
 </table>
+
+In very simple words, AdaIN was neglected by the baseline UNet. After few iterations the latent space of the AdaIN encoder was all put to zero. A sign that the network was suppressing it, in favour of pure reconsruction.
+The consequence is that at inference phase, when passing different style images, no difference would be observed.
+
+In the following picture you can see the histograms of the values inside the latent space for 10 random test images, sampled from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset.
+
+
 <p align="top">
   <img src="./images/LatentSpace-zeros.jpeg" width="1000" />
 </p>
@@ -214,16 +226,16 @@ In the following picture you can see the histograms of the values inside the lat
 To achieve this, we build a new dataloader that sampled pairs of context and style iamges and we fed them both to the network. The forward pass is pretty intuitive. The backward pass needed some more careful thinking though.
 Our first idea was to introduce a new loss, thus distinguishing between colorization and style loss.
 The colorization loss was exactly the same as before, a linear combination of MSE and lpips between recreated image and original colur image.
+
 The style loss was obtained in the following way:
 1) We stored the latent space of the AdaIN encoder, namely the embedding of the style image
 2) After the forward pass, without computing the gradient, we passed the recreated image through the AdaIN encoder, thus obtaining the embedding of the recreated image
 3) We computed MSE between the two latent spaces
-
 The final loss was a weighted linear combination of the two losses.
 
 We hoped to manually force the network to learn style transfer, but we were unfortunately stopped by a very basic inconvenience: the balancing of the two losses. Indeed, the colorization loss was of the order of magnitude of $10^{-2}$ or $10^{-3}$, while the style loss, which we rember was computed on the embdeeings obtained throught the same encoder, was much lower, woth values oscillating between $10^{-5}$ and $10^{-8}$. We realised that without additional learning techniques, we would have never found an optimal way to balance these two losses. Here is an example:
 
-<table align="left">
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>5000</td>
@@ -236,19 +248,22 @@ We hoped to manually force the network to learn style transfer, but we were unfo
     <th>Batch size</th>
     <td>12</td>
   </tr>
+   <tr>
+    <th>Colorspace</th>
+    <td>RGB</td>
+  </tr>
   <tr>
     <th><span style="color:orange"> combined_loss = α•color_loss + (1-α)•style_loss</span></th>
     <td><span style="color:orange"> α = 0.5</span></td>
   </tr>
+</table>
 
-<!-- Leave this empty table! Needed for alignment -->
-<table align="top">
-  </tr>
-<!-- Leave this empty table! Needed for alignment -->
-
-<p align="left">
-  <img src="./images/combined_loss_failed_attempt.png" width="600" />
+<p align="center">
+  <img src="./images/combined_loss_failed_attempt.png" width="500" />
 </p>
+
+
+
 
 
 
@@ -273,24 +288,183 @@ The whole point of leaning the adain parameters was intended for implicit traini
 After a second meeting with our tutor, we came to realise that a much simpler solution could be taken, that would give justice to the learnable AdaIN original concept: we had to introduce scarsity in the baseline UNet, so that it would look into the style representation, instead of trying to recreate itself perfectly and cast all the AdaIN parameters to 0.
 
 
-#### Last changes and the final model
-Therefore, we rewrote the UNet to be much lighter, by reducing the number of channels to 1/4 throughout the whole network and all skip connections and AdaIN pins respectively.
+### The solution and the final model
+
+#### The turning point
+
+<table align="right">
+  <tr>
+    <th>Train dataset size</th>
+    <td>5000</td>
+  </tr>
+  <tr>
+    <th>Validation dataset size</th>
+    <td>500</td>
+  </tr>
+  <tr>
+    <th>Batch size</th>
+    <td>16</td>
+  </tr>
+  <tr>
+    <th>Colorspace</th>
+    <td>RGB</td>
+  </tr>
+  <tr>
+    <th><span style="color:orange"> AdaIN encoder latent space dimension</span></th>
+    <td><span style="color:orange"> 32</span></td>
+  </tr>
+</table>
+
+Accordingly to the reflections stated above, we rewrote the UNet to be much lighter, by reducing the number of channels to 1/4 throughout the whole network and all skip connections and AdaIN pins respectively.
 One more change was needed before finally obtaining some positive news: reducing the latent space of the AdaIN encoder from size 128 to size 32.
 Finally, these were the results we got:
 
-<p align="left">
-  <img src="./images/elephants_latent32.jpeg" width="800" />
-</p>
-In short: bad colorization capabilities still, with even some artefacts, but for the first time the latent space of the AdaIN encoder was training well and had reasonable values. You can see this in the next image, which represents histograms of the values of the embeddings of four different test images.
+In short: we still experienced bad colorization capabilities, with even some artefacts, but for the first time the latent space of the AdaIN encoder was training well and it had reasonable values. You can see this in the next image, which represents histograms of the values of the embeddings of four different test images.
 
 <p align="left">
+  <img src="./images/elephants_latent32.jpeg" width="800" />
   <img src="./images/histograms_latent32.jpeg" width="800" />
 </p>
 
+#### The first achievement in color transfer
 
-# <a name="conclusion"></a>6. Conclusion
+<table align="right">
+  <tr>
+    <th>Train dataset size</th>
+    <td><span style="color:orange"> 50.000</span></td>
+  </tr>
+  <tr>
+    <th>Validation dataset size</th>
+    <td>500</td>
+  </tr>
+  <tr>
+    <th>Batch size</th>
+    <td>16</td>
+  </tr>
+   <tr>
+    <th>Colorspace</th>
+    <td>RGB</td>
+  </tr>
+  <tr>
+    <th>AdaIN encoder latent space dimension</th>
+    <td> 32</td>
+  </tr>
+  <tr>
+    <th><span style="color:orange"> Dropout rate after every convolution</span></th>
+    <td><span style="color:orange"> 0.2</span></td>
+  </tr>
+</table>
+
+It's no surprise that the next step of ours was to train on a much bigger dataset and for more epochs. One drawback was the insurgence of overfitting. Therefore we introduced dropout layers after every convolution block.
+Here are the results!
+
+Truth be told, elephants looked more like mammoths, but the big news lied in the ability of this networ to operate color transfer from artistic images, like in the examples below.
+<p align="left">
+  <img src="./images/latent32_elephants.png" width="800" />
+  <img src="./images/latent32_histograms.png" width="800" />
+  <img src="./images/latent32-styletransfer-1.jpeg" width="800" />
+  <img src="./images/latent32-styletransfer-2.jpeg" width="800" />
+  <img src="./images/latent32-styletransfer-3.jpeg" width="800" />
+</p>
+
+# <a name="final-model"></a>6. The final model
+As we previously stated, [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project) presents only the meaningful experiments, that taught us a lesson and brought us here, to the final model. Many ther experiments in between were conducted, to reach the final state, and especially further more training.
+
+On teh other hand, al fundamental changes are stated in [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project), thus implying that from the [last result of the aformentioned section](#the-first-achievement-in-color-transfer) and the one we will present now, the only news is long training.
+
+<table align="center">
+  <tr>
+    <th>Train dataset size</th>
+    <td><span style="color:orange"> 100.000</span></td>
+  </tr>
+  <tr>
+    <th>Validation dataset size</th>
+    <td><span style="color:orange"> 1.000</span></td>
+  </tr>
+  <tr>
+    <th>Batch size</th>
+    <td>16</td>
+  </tr>
+   <tr>
+    <th>Colorspace</th>
+    <td>RGB</td>
+  </tr>
+  <tr>
+    <th>AdaIN encoder latent space dimension</th>
+    <td> 32</td>
+  </tr>
+  <tr>
+    <th>Dropout rate after every convolution</th>
+    <td><span style="color:orange"> 0.1</span></td>
+  </tr>
+</table>
+
+
+<span style="color:red"> <b> Insert final results </b></span>
+<p align="left">
+  <img src="./images/" width="800" />
+  <img src="./images/" width="800" />
+  <img src="./images/" width="800" />
+  <img src="./images/" width="800" />
+</p>
+
+# <a name="conclusion"></a>7. Conclusion
 
 In conclusion, we have presented a novel UNet architecture enhanced with Adaptive Instance Normalization (AdaIN) layers for grayscale image colorization in diverse artistic styles. Although it's more a draft than a finished product, we are confindent that with better resources and some more attention this could grow into a good model.
 We have worked really hard, moving in unkown territory, guided by our thought process and our tireless will to test our ideas with experiments. Most of them failed, but that's how we learned how to progress.
 We are really sorry for the final state of the product, we resally cared about it, as we hope our long commitment shows.
 One thing is certain, under the didactic perspective, we have learned a lot from this project, and we are definitely satisfied with the choice of this topic.
+
+
+# <a name="appendix"></a>Appendix
+
+## Further experiments
+In this extra section we outline some of the experiments that didn't make it to the finla cut and that didn't present meaningful results toward our goal. Nonetheless they were an interesting study and give the full picture on the efforts put into this project.
+
+### The LAB colorspace
+
+We spent a huge effort trying to make our model compatible to both LAB and RGB colorspaces. The former should have been better suited for our task in theory. 
+
+Let's see why:
+- ⏹️ The input grayscale image has 1 channel, as for RGB. 
+- 🔼 The output of the baseline UNet is only on the $a,b$ channels, while $L$ must not be learned, but just concatenated.
+- 🔼 The AdaIN encoder should just take $a,b$ channels as input, resulting in a more informative latent space
+
+Unfortunately, in practice, we didn't record any improvement on the RGB counterpart at all. The colorisation was much more stable, but also gray-ish. And we completely lost the ability to perform color transfer.
+Let's see the sibling training of the RGB-Latent32, that we presented at the [end of Section 5](#the-first-achievement-in-color-transfer).
+
+<table align="right">
+  <tr>
+    <th>Train dataset size</th>
+    <td>50.000</td>
+  </tr>
+  <tr>
+    <th>Validation dataset size</th>
+    <td>500</td>
+  </tr>
+  <tr>
+    <th>Batch size</th>
+    <td>16</td>
+  </tr>
+   <tr>
+    <th>Colorspace</th>
+    <td><span style="color:orange"> LAB</span></td>
+  </tr>
+  <tr>
+    <th>AdaIN encoder latent space dimension</th>
+    <td> 32</td>
+  </tr>
+  <tr>
+    <th><span style="color:orange"> Dropout rate after every convolution</span></th>
+    <td><span style="color:orange"> 0.2</span></td>
+  </tr>
+</table>
+
+In this particular case, we analize the histograms of the values of the latent space of the AdaIN encoder for different artistic images and we notice values all clustering around 0.5. We deduce therefore that the cause of the poor performance lies again in the lack of scarcity. The network is otherwise the same as its RGB counterpart, but is also much more efficient in the LAB framework.
+We are aware that with further experiments, aimed at rebalancing the scarcity and the influence of the AdaIN layers, we might have obtained even better results than RGB. Unfortunately, the lack of tiime and resources forced us to take some decisions and we deemed more reasonable to invest time on perfecting the RGB network that gave us the first positive feedback on color transfer.
+
+<p align="left">
+  <img src="./images/LAB-latent32-baseline.png" width="800" />
+  <img src="./images/LAB-latent32-histograms.png" width="800" />
+  <img src="./images/LAB-latent32-VanGogh.png" width="800" />
+</p>
