@@ -175,6 +175,7 @@ def prepare_dataset(train_size=10,test_size=10,batch_size=4,colorspace='RGB',res
     transform_train, transform_test = get_transforms(colorspace,resolution=resolution)
 
     login_token = os.getenv('HUGGING_FACE_TOKEN')
+    print("Hugging face token: ",login_token)
     dataset_train = load_dataset("imagenet-1k",split='train',use_auth_token=login_token,streaming=True)
     dataset_test = load_dataset("imagenet-1k",split='test',use_auth_token=login_token,streaming=True)
     ## map resize transformation before take 

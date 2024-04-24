@@ -4,7 +4,6 @@
 
 | Name and surname    |  Matric. Nr. | GitHub username  |   e-mail address   |
 |:--------------------|:-------------|:-----------------|:-------------------|
-| Alexander Nyamekye | <span style="color:red"> *(?)* </span>| nalexunder | alexander.nyamekye@stud.uni-heidelberg.de|
 | Cristi Andrei Prioteasa | <span style="color:red"> 	4740844 </span>| PrioteasaAndrei | cristi.prioteasa@stud.uni-heidelberg.de|
 | Matteo Malvestiti | 4731243| Matteo-Malve | matteo.malvestiti@stud.uni-heidelberg.de|
 | Jan Smolen | <span style="color:red"> *(?)* </span>| <span style="color:red"> *(?)* </span> | wm315@stud.uni-heidelberg.de|
@@ -38,23 +37,22 @@ This project has his roots in our fascination for the colorisation task: an unde
 Deep Convolutional Neural Networks are a powerful tool to tackle this task, since they can learn to understand the semantics of the image itself.
 Moreover the AdaIN encoder, if used in training on the ground truth colored image itself, can be a powerful tool to encode the colour semantics. This addition alone, consisting in a regularisation and having yet no capacity to do style transfer, lead to a great improvement in colorisation quality.
 
-The first idea of our group was less ambitious, namely to train a UNet for colorisation and finetuining it on different style images, like paintings of certain styles, and to present the user a limited choice of styles to colorise its uploaded grayscale iamge.
+<!-- The first idea of our group was less ambitious, namely to train a UNet for colorisation and finetuining it on different style images, like paintings of certain styles, and to present the user a limited choice of styles to colorise its uploaded grayscale iamge.
 Our tutor, though, immediately introduced us to Adaptive Instance normalization, which, after a careful read of the related scientific paper ([Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868)), we thought to be facinating and we immediately took as primary inspiration.
 
 There are three big differences between our approach and the forementioned paper:
 1) Our network also colorizes images, rather than just transfering style.
 2) Our Adaptive Instance Normalization is applied after every block of convolution, rather than just once on the bottlenck of the UNet.
-3) The mean and standard deviations used in our AdaIN are not deterministic but are learned as well.
+3) The mean and standard deviations used in our AdaIN are not deterministic but are learned as well. -->
 
 # <a name="related_work"></a>3. Related work
-Our first struggle was definitely to train a Neural Network that was able to recreate first, and then to colorise images. We started from an encoder-decoder architecture that had a pretrained VGG19 encoder, discarding the classification head. The idea was to save a lot on computational cost. Unfortunately it wasn't enough: if we froze the encoder and trained the decoder alone, we were underfitted. If we unfroze the encoder, VGG19 was simply not worth it. Indeed, it was a big network, taking a lot of comptuational resourses, but at the same time it didn't offer skip connections or the flexibility to insert AdaIN layers, not while wanting to load the pretrained weights at least.
 
-Anyways, this was a big part of our first two weeks of work. The paper we were getting inspiration from was: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868), together with its unofficial implementation from the GitHub repository [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN).
+Most of the related work deals with the non-parameter version of AdaIN, as introduce in the [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868). There are three main approaches in the literature: combining color and texture in the transformation (called style), colorizing without any style information, such as in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) or considering color and texture separatly and allowing for a controllable blend between the two (see [Aesthetic-Aware Image Style Transfer](http://hcsi.cs.tsinghua.edu.cn/Paper/Paper20/MM20-HUZHIYUAN.pdf
+)). In our work we deal only with color transfer in different styles and no texture transfer.
 
-Our first results in recreation and colorisation came when we started following the approach described in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867). It was by manually recreating layer by layer their UNet that we overcame our troubles.
 
-The next step, namely the introduction of AdaIN layers for regularisation, was discussed in a meeting with our tutor and had no direct backup from scientific papers. The Adaptive Instance Normalization is done like in [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868), but with a big difference: the parameters of mean and standard deviation are learned every time from simple linear layers that act as interfaces between the latent space of the AdaIN encoder and the feature maps where normalization takes place. If you refer to the big architecture map in the beginning of this documentation, we are talking about the blue pins.
-This idea of learning the AdaIN parameters comes from NVIDIA's 2019's [StyleGAN paper](https://openaccess.thecvf.com/content_CVPR_2019/papers/Karras_A_Style-Based_Generator_Architecture_for_Generative_Adversarial_Networks_CVPR_2019_paper.pdf).
+<!-- Anyways, this was a big part of our first two weeks of work. The paper we were getting inspiration from was: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868), together with its unofficial implementation from the GitHub repository [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN). -->
+
 
 
 # <a name="approach"></a>4. Approach
@@ -75,7 +73,21 @@ The decoder doesn't exactly mirror the encoder, but present the same jumps in nu
 
 The most notable featue of the UNet are the skip connections. We have five. Every time we concatenate the respective feature maps in the encoder to the newly upscaled featuremaps of the decoder. Then we fuse them together with 1x1 convolutions.
 
-<table align="right">
+
+This network alone was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
+Below you can see:
+1) Loss curves for only UNet tasked with colorization
+2) Colorization performance on a training image
+3) Colorization performance on a test image (never seen before)
+<p align="center">
+  <img src="./images/colorization_trsize2000_valsize200_loss_plot.png" width="800" />
+  <img src="./images/colorization_training_bird.png" width="800" />
+  <img src="./images/colorization_validation_elephants.png" width="800" />
+</p>
+
+The results were achieved using the following network configuration:
+
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>2000</td>
@@ -106,22 +118,16 @@ The most notable featue of the UNet are the skip connections. We have five. Ever
   </tr>
 </table>
 
-This network alone was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
-Below you can see:
-1) Loss curves for only UNet tasked with colorization
-2) Colorization performance on a training image
-3) Colorization performance on a test image (never seen before)
-<p align="left">
-  <img src="./images/colorization_trsize2000_valsize200_loss_plot.png" width="500" />
-  <img src="./images/colorization_training_bird.png" width="500" />
-  <img src="./images/colorization_validation_elephants.png" width="500" />
-</p>
-
 
 The network expects input in the form of $[C,H,W]$, where the number of channels $C$ can be 2 for the LAB colorspace and 3 for the RGB colorspace. We chose to train our model using the RGB color space because the LAB tranformation introduces a number of artefacts from numerical instability of the transformation which yields poorer results.
 
 #### The addition of Adaptive Instance Normalization
-<span style="color:red"> 	Insert description of adaIN layers (formula) </span>
+We implement a version of Adaptive Instance Normalization as in the original [Style GAN paper](https://arxiv.org/pdf/1812.04948.pdf), given by (see paper for full description of the terms):
+$$
+AdaIN(xi, y) = y_{s,i} \times \frac{x_i − μ(xi)}{σ(xi)} + y_{b,i}
+$$
+
+This layers aims to align per channel the mean and variance of the feature space of the encoded style image with the feature maps of the original image at different depths in the network using learned affine transformations (MLPs in our network), in this way achieving style tranfer (color transfer). 
 
 The AdaIN encoder runs only one per epoch, embedding the style image in a compressed latent space. After every block of convolutions, followed by ReLu activations and batch normalization, the feature maps get normalized with the mean and std of the adain interface. Since in the different stages of the UNet the feature maps have different channel sizes, a dense linear layer is put in between the AdaIN latent space and the feature maps.
 
@@ -129,10 +135,13 @@ The AdaIN encoder runs only one per epoch, embedding the style image in a compre
 
 ## <a name="architecture"></a>4.2 Training & Dataset
 
+Since we didn't have available computing resources, we used a personal laptop with NVIDIA GeForce RTX 3050TI, 4096MiB VRAM and a M1 MacBook Air (16Gb RAM) for training. This limit our ability in terms of resolution of the input images. Training with patches of size $256 \times 256$ yielded poor results even after prologed training, but using patches of size $128 \times 128$ yields decent results which generalize.
+
+We experiment with two types of losses: MSE against the original image and [Learned Perceptual Similarty](https://github.com/richzhang/PerceptualSimilarity), as a way to encourage the network to learn semanting colorization information about the image instead of faithfully reproducting the colors of the original image. We use a weighted sum of both losses for our training.
+
 #### Implicit training
 During training we pass as style image the colour original image itself.
-Then, we train on colorizing the grayscale image, computing the loss of the recreated image against the original colour image. The loss is a combination of MSE pixel by pixel and of <span style="color:red"> 	perceptual similarity (?) </span>.
-During backpropagation the various AdaIN interfaces and the encoder get implicitly trained.
+Then, we train on colorizing the grayscale image, computing the loss of the recreated image against the original colour image. The loss is a combination of MSE pixel by pixel and of [learned perceptual similarity](https://github.com/richzhang/PerceptualSimilarity). We use learned perceptual similarity (LPIPS) as it gives the network more freedom in learning semantically equivalent colors for different regions, instead of learning to reproduce the exact color from the training set. During backpropagation the various AdaIN interfaces and the encoder get implicitly trained.
 
 In the final version of the model, there is no training against different style images. This approach was tried and will be discussed futher ahead. It needs the definition of a new style loss and good balancing with the colorization loss. Anyways, this should not be necessary: so long as scarcity is induced in the baseline UNet, it should resort in relying on the encoded data of the style image, provided by AdaIN interface. Thus, when passing a new style image at inference time, this implicit training should be enough to transfer the style.
 
@@ -146,46 +155,26 @@ As style images to test at inference phase, we sample from the [wikiart](https:/
 #### Training analysis
 <span style="color:red"> 	insert graph loses from latest model here </span>
 
-## <a name="architecture"></a>4.2 Experiments and hyperparameters
-
-<span style="color:red"> 	I think we need to rethink this section. Maybe merge it with the previous? I would rather talk as "experiments" about the vaious different approaches we did. </span>
-
-Since we didn't have available computing resources, we used a personal laptop with NVIDIA GeForce RTX 3050TI, 4096MiB VRAM and a M1 MacBook Air (16Gb RAM) for training. This limit our ability in terms of resolution of the input images. Training with patches of size $256 \times 256$ yielded poor results even after prologed training, but using patches of size $128 \times 128$ yields decent results which generalize.
-
-We experiment with two types of losses: MSE against the original image and [Learned Perceptual Similarty](https://github.com/richzhang/PerceptualSimilarity), as a way to encourage the network to learn semanting colorization information about the image instead of faithfully reproducting the colors of the original image. We use a weighted sum of both losses for our training.
-
-When using only LPIPS for our loss function, our output images present artefacts. We would need to further investigate the causes of this.
-
-<p align="left">
-  <img src="./Unet_adain/results_perceptual_only/dog_no_style.png" width="2000" />
-  <img src="./Unet_adain/results_perceptual_only/magazine_no_style.png" width="2000" />
-</p>
- 
-When using only MSE for our loss function we get better results, we obtain more meaningful results, but with a considerable greater amount of training. Thus, we settle on a weighed mean of the two which yields good results.
-
-** TODO: insert here our best results **
-<p align="left">
-  <img src="./Unet_adain/results_combined_loss/frog_no_style.png" width="2000" />
-  <img src="./Unet_adain/results_combined_loss/dog_no_style.png" width="2000" />
-</p>
-
-
-There are also images for which colorization fails completly and outputs noise:
-
-<p align="left">
-  <img src="./Unet_adain/results_combined_loss/leopard_no_style.png" width="2000" />
-</p>
-
-
-** TODO: insert results from style transfer ** 
-
 # <a name="troubles"></a>5. Troubles, experiments, reflections and evolution of the project
 In this section we present a reorganized history of the thought process that led us to the final prothotype.
 This will only contain the most crucial experiments, those from which we learned somthing that brought us a step closer to out goal. Many more experiments were done, like those on the LAB colorspace, and they can be found in the [Appendix]().
 
+### Achieving colorization without style transfer
+
+Our first struggle was definitely to train a Neural Network that was able to recreate first, and then to colorise images. We started from an encoder-decoder architecture that had a pretrained VGG19 encoder, discarding the classification head. The idea was to save a lot on computational cost. Unfortunately it wasn't enough: if we froze the encoder and trained the decoder alone, we were underfitted. If we unfroze the encoder, VGG19 was simply not worth it. Indeed, it was a big network, taking a lot of comptuational resourses, but at the same time it didn't offer skip connections or the flexibility to insert AdaIN layers, not while wanting to load the pretrained weights at least.
+
+Our first results in recreation and colorisation came when we started following the approach described in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867). It was by manually recreating layer by layer their UNet that we overcame our troubles.
+
+### Introducing style stransfer using AdaIN layers
+
+The next step, namely the introduction of AdaIN layers for regularisation, was discussed in a meeting with our tutor and had no direct backup from scientific papers. The Adaptive Instance Normalization is done like in [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868), but with a big difference: the parameters of mean and standard deviation are learned every time from simple linear layers that act as interfaces between the latent space of the AdaIN encoder and the feature maps where normalization takes place. If you refer to the big architecture map in the beginning of this documentation, we are talking about the blue pins.
+This idea of learning the AdaIN parameters comes from NVIDIA's 2019's [StyleGAN paper](https://openaccess.thecvf.com/content_CVPR_2019/papers/Karras_A_Style-Based_Generator_Architecture_for_Generative_Adversarial_Networks_CVPR_2019_paper.pdf).
+
+
+
 ### The problem that originated the need of rethinking
 
-<table align="right">
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>50000</td>
@@ -210,6 +199,10 @@ This will only contain the most crucial experiments, those from which we learned
     <th><span style="color:orange"> Latent space dimension</span></th>
     <td><span style="color:orange"> 128</span></td>
   </tr>
+  <tr>
+    <th>Epochs</th>
+    <td>32</td>
+  </tr>
 </table>
 
 In very simple words, AdaIN was neglected by the baseline UNet. After few iterations the latent space of the AdaIN encoder was all put to zero. A sign that the network was suppressing it, in favour of pure reconsruction.
@@ -218,7 +211,7 @@ The consequence is that at inference phase, when passing different style images,
 In the following picture you can see the histograms of the values inside the latent space for 10 random test images, sampled from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset.
 
 
-<p align="top">
+<p align="center">
   <img src="./images/LatentSpace-zeros.jpeg" width="1000" />
 </p>
 
@@ -292,7 +285,7 @@ After a second meeting with our tutor, we came to realise that a much simpler so
 
 #### The turning point
 
-<table align="right">
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>5000</td>
@@ -321,14 +314,14 @@ Finally, these were the results we got:
 
 In short: we still experienced bad colorization capabilities, with even some artefacts, but for the first time the latent space of the AdaIN encoder was training well and it had reasonable values. You can see this in the next image, which represents histograms of the values of the embeddings of four different test images.
 
-<p align="left">
+<p align="center">
   <img src="./images/elephants_latent32.jpeg" width="800" />
   <img src="./images/histograms_latent32.jpeg" width="800" />
 </p>
 
 #### The first achievement in color transfer
 
-<table align="right">
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td><span style="color:orange"> 50.000</span></td>
@@ -353,13 +346,14 @@ In short: we still experienced bad colorization capabilities, with even some art
     <th><span style="color:orange"> Dropout rate after every convolution</span></th>
     <td><span style="color:orange"> 0.2</span></td>
   </tr>
+
 </table>
 
 It's no surprise that the next step of ours was to train on a much bigger dataset and for more epochs. One drawback was the insurgence of overfitting. Therefore we introduced dropout layers after every convolution block.
 Here are the results!
 
 Truth be told, elephants looked more like mammoths, but the big news lied in the ability of this networ to operate color transfer from artistic images, like in the examples below.
-<p align="left">
+<p align="center">
   <img src="./images/latent32_elephants.png" width="800" />
   <img src="./images/latent32_histograms.png" width="800" />
   <img src="./images/latent32-styletransfer-1.jpeg" width="800" />
@@ -370,7 +364,7 @@ Truth be told, elephants looked more like mammoths, but the big news lied in the
 # <a name="final-model"></a>6. The final model
 As we previously stated, [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project) presents only the meaningful experiments, that taught us a lesson and brought us here, to the final model. Many ther experiments in between were conducted, to reach the final state, and especially further more training.
 
-On teh other hand, al fundamental changes are stated in [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project), thus implying that from the [last result of the aformentioned section](#the-first-achievement-in-color-transfer) and the one we will present now, the only news is long training.
+On the other hand, al fundamental changes are stated in [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project), thus implying that from the [last result of the aformentioned section](#the-first-achievement-in-color-transfer) and the one we will present now, the only news is long training.
 
 <table align="center">
   <tr>
@@ -397,23 +391,23 @@ On teh other hand, al fundamental changes are stated in [Section 5](#5-troubles-
     <th>Dropout rate after every convolution</th>
     <td><span style="color:orange"> 0.1</span></td>
   </tr>
+  
 </table>
 
 
-<span style="color:red"> <b> Insert final results </b></span>
-<p align="left">
-  <img src="./images/" width="800" />
-  <img src="./images/" width="800" />
-  <img src="./images/" width="800" />
-  <img src="./images/" width="800" />
+<h3 align='center'> Exotic bird </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_2.png" width="800" />
 </p>
+
+See Appendix for more result samples.
 
 # <a name="conclusion"></a>7. Conclusion
 
-In conclusion, we have presented a novel UNet architecture enhanced with Adaptive Instance Normalization (AdaIN) layers for grayscale image colorization in diverse artistic styles. Although it's more a draft than a finished product, we are confindent that with better resources and some more attention this could grow into a good model.
-We have worked really hard, moving in unkown territory, guided by our thought process and our tireless will to test our ideas with experiments. Most of them failed, but that's how we learned how to progress.
-We are really sorry for the final state of the product, we resally cared about it, as we hope our long commitment shows.
-One thing is certain, under the didactic perspective, we have learned a lot from this project, and we are definitely satisfied with the choice of this topic.
+In conclusion, we have presented a novel UNet architecture enhanced with Adaptive Instance Normalization (AdaIN) layers for grayscale image colorization in diverse artistic styles. We achieve good colorization results and clear style transfer, while keeping the network lightweight (3.5M parameters) and can fit on consumer grade GPUs. We conducted experiments on the influence of the latent space dimension and investigated the expressiveness of the network in term of depth and number of parameters. We investigated different normalization techniques, influence of the used colorspace (RGB vs LAB) and texture vs color transfer.
 
 
 # <a name="appendix"></a>Appendix
@@ -433,7 +427,7 @@ Let's see why:
 Unfortunately, in practice, we didn't record any improvement on the RGB counterpart at all. The colorisation was much more stable, but also gray-ish. And we completely lost the ability to perform color transfer.
 Let's see the sibling training of the RGB-Latent32, that we presented at the [end of Section 5](#the-first-achievement-in-color-transfer).
 
-<table align="right">
+<table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>50.000</td>
@@ -458,13 +452,60 @@ Let's see the sibling training of the RGB-Latent32, that we presented at the [en
     <th><span style="color:orange"> Dropout rate after every convolution</span></th>
     <td><span style="color:orange"> 0.2</span></td>
   </tr>
+  <tr>
+    <th>Epochs</th>
+    <td>32</td>
+  </tr>
 </table>
 
 In this particular case, we analize the histograms of the values of the latent space of the AdaIN encoder for different artistic images and we notice values all clustering around 0.5. We deduce therefore that the cause of the poor performance lies again in the lack of scarcity. The network is otherwise the same as its RGB counterpart, but is also much more efficient in the LAB framework.
 We are aware that with further experiments, aimed at rebalancing the scarcity and the influence of the AdaIN layers, we might have obtained even better results than RGB. Unfortunately, the lack of tiime and resources forced us to take some decisions and we deemed more reasonable to invest time on perfecting the RGB network that gave us the first positive feedback on color transfer.
 
-<p align="left">
+<p align="center">
   <img src="./images/LAB-latent32-baseline.png" width="800" />
   <img src="./images/LAB-latent32-histograms.png" width="800" />
   <img src="./images/LAB-latent32-VanGogh.png" width="800" />
+</p>
+
+
+### Additional results
+
+<h3 align='center'> Dog and Sheeps </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_2.png" width="800" />
+</p>
+
+<h3 align='center'> Exotic bird </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_2.png" width="800" />
+</p>
+
+<h3 align='center'> Small dog in grass </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_3_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_3_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_3_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_3_style_2.png" width="800" />
+</p>
+
+<h3 align='center'> Nature landscape </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_5_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_5_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_5_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_5_style_2.png" width="800" />
+</p>
+
+<h3 align='center'> Man </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_13_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_13_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_13_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_13_style_2.png" width="800" />
 </p>
