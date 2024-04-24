@@ -8,6 +8,9 @@ import streamlit as st
 import argparse
 import numpy as np
 from PIL import Image
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Streamlit arguments")
@@ -20,9 +23,6 @@ args = parse_args()
 model_path = args.model_path
 
 
-
-
-
 device = torch.device("cuda" if torch.cuda.is_available()
                 else "mps" if torch.backends.mps.is_built() else "cpu")
 
@@ -31,6 +31,14 @@ model = model.to(device)
 COLORSPACE = 'RGB'
 RESOLUTION = ((128,128))
 transform_style, transform_source = get_transforms(COLORSPACE, RESOLUTION)
+
+
+
+# Convert the tensor values to the range [0, 255] and type `uint8` (required for image saving)
+transform_to_image = transforms.Compose([
+    transforms.Lambda(lambda x: x * 255),  # Scale from [0, 1] to [0, 255]
+    transforms.Lambda(lambda x: x.byte())  # Convert to uint8
+])
 
 
 def main():
@@ -70,7 +78,20 @@ def main():
     if image1 and image2:
         _,recreated_image = model(source_pt.unsqueeze(0).to(device),
                         style_pt.unsqueeze(0).to(device))
-        recreated_image= torchvision.transforms.functional.to_pil_image(recreated_image[0])
+        ## save recreated image to file
+        print(recreated_image.shape, type(recreated_image))
+
+        # Apply the transformations
+        tensor = transform_to_image(recreated_image.squeeze(0))
+
+        # Convert tensor to PIL image
+        image = transforms.ToPILImage()(tensor)
+
+        # Save the image to disk
+        image.save("reconstruction.png")
+
+
+        recreated_image= torchvision.transforms.functional.to_pil_image(recreated_image[0]) ## maybe problem here
         st.image(recreated_image, caption="", use_column_width=True)
 
 
