@@ -15,6 +15,29 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 
 ***
 
+### Setup
+
+```bash
+conda env create -f environment.yml --name colorization
+conda activate colorization
+streamlit run gui/demo.py -- --model_path=models/RGB_Latent32_best_model.pth.tar
+```
+Use the graphical interface to upload style and contet images. The images will be automatically resized to $128px\times128px$. The model takes only 400 MB, so it should work on most low-end devices.
+
+NOTE: a Huggingface token is needed to run the training / download the dataset (this is not necessary to run the forward pass of the network). Create a .env file in the main directory and add `HUGGING_FACE_TOKEN='YOUR TOKEN'`.
+
+### Project Structure
+```
+├── gui <----------- streamlit app
+├── images <---------- various images saved along the project developement
+├── implicit-UNet-AdaIN <----------------- network and training
+│   ├── implicit_scarsity_experiments <---------------- experiment results
+│   ├── samples <-------------------- validation samples
+│   └── samples_organized <--------------- validation samples in a more human readable format
+├── models <---------------------- model checkpoint
+└── Unet_adain <---------------------- older versions of the model checkpoints
+    └── combined_losses_experiments
+```
 
 ## Table of contents
 
@@ -47,7 +70,7 @@ There are three big differences between our approach and the forementioned paper
 
 # <a name="related_work"></a>3. Related work
 
-Most of the related work deals with the non-parameter version of AdaIN, as introduce in the [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868). There are three main approaches in the literature: combining color and texture in the transformation (called style), colorizing without any style information, such as in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) or considering color and texture separatly and allowing for a controllable blend between the two (see [Aesthetic-Aware Image Style Transfer](http://hcsi.cs.tsinghua.edu.cn/Paper/Paper20/MM20-HUZHIYUAN.pdf
+Most of the related work deals with the non-parameter version of AdaIN, as introduce in the [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868) or work with some sort of Generative Adversarial Networks as they are more expressive and suited for this task. There are three main approaches in the literature of UNet based colorization: combining color and texture in the transformation (called style), colorizing without any style information, such as in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) or considering color and texture separatly and allowing for a controllable blend between the two (see [Aesthetic-Aware Image Style Transfer](http://hcsi.cs.tsinghua.edu.cn/Paper/Paper20/MM20-HUZHIYUAN.pdf
 )). In our work we deal only with color transfer in different styles and no texture transfer.
 
 
@@ -62,6 +85,8 @@ Most of the related work deals with the non-parameter version of AdaIN, as intro
   <img src="./images/architecture_map.png" width="2000" />
 </p>
 Let us explain our architecture step by step.
+<span style="color:red"> 	reformat this and add more </span>
+
 
 #### The baseline UNet
 The main core of the NN is the central UNet. UNet is still state of the art at this day and it's particularly effective for segmenting images. This knowledge is exactly what we needed for our colorization task.
@@ -145,17 +170,15 @@ Then, we train on colorizing the grayscale image, computing the loss of the recr
 
 In the final version of the model, there is no training against different style images. This approach was tried and will be discussed futher ahead. It needs the definition of a new style loss and good balancing with the colorization loss. Anyways, this should not be necessary: so long as scarcity is induced in the baseline UNet, it should resort in relying on the encoded data of the style image, provided by AdaIN interface. Thus, when passing a new style image at inference time, this implicit training should be enough to transfer the style.
 
-#### Our dataset
+#### Dataset
 
 
-We decided to use the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset for our training. 
-As style images to test at inference phase, we sample from the [wikiart](https://huggingface.co/datasets/huggan/wikiart) dataset.
-<!-- For our style colorization and later fine-tuning we use the [wikiart](https://huggingface.co/datasets/huggan/wikiart) dataset. We chose a training size of 5000 samples and train for 100 epochs using an Adam optimizer with a learning rate of $1e^{-3}$. We further fine tune on ... artistic images. -->
+We use the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset for our training. We experiment with different training set size and for our final model we use 50k training images and 500 validation images. As style images to test at inference phase, we sample from the [wikiart](https://huggingface.co/datasets/huggan/wikiart) dataset.
 
 #### Training analysis
 <span style="color:red"> 	insert graph loses from latest model here </span>
 
-# <a name="troubles"></a>5. Troubles, experiments, reflections and evolution of the project
+# <a name="troubles"></a>5. Experiments and ablation studies
 In this section we present a reorganized history of the thought process that led us to the final prothotype.
 This will only contain the most crucial experiments, those from which we learned somthing that brought us a step closer to out goal. Many more experiments were done, like those on the LAB colorspace, and they can be found in the [Appendix]().
 
@@ -172,7 +195,9 @@ This idea of learning the AdaIN parameters comes from NVIDIA's 2019's [StyleGAN 
 
 
 
-### The problem that originated the need of rethinking
+### Null style latent space
+
+For the following section, the experiments were conducted using the following configuration:
 
 <table align="center">
   <tr>
@@ -205,17 +230,15 @@ This idea of learning the AdaIN parameters comes from NVIDIA's 2019's [StyleGAN 
   </tr>
 </table>
 
-In very simple words, AdaIN was neglected by the baseline UNet. After few iterations the latent space of the AdaIN encoder was all put to zero. A sign that the network was suppressing it, in favour of pure reconsruction.
-The consequence is that at inference phase, when passing different style images, no difference would be observed.
 
-In the following picture you can see the histograms of the values inside the latent space for 10 random test images, sampled from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset.
-
+AdaIN (Adaptive Instance Normalization) was effectively disregarded by the baseline UNet architecture. After a few iterations, the latent space in the AdaIN encoder was driven entirely to zero (see next image), indicating that the network was suppressing its influence in favor of straightforward reconstruction. As a result, during the inference phase, when different style images were input, there was no noticeable effect on the output, demonstrating that the style information was not contributing to the reconstructed image.
 
 <p align="center">
   <img src="./images/LatentSpace-zeros.jpeg" width="1000" />
+  Histogram of random samples from the style latent space.
 </p>
 
-#### First attempted solution: training with different pairs of (context + style) images
+#### Attempt 1: training with different pairs of (context + style) images
 To achieve this, we build a new dataloader that sampled pairs of context and style iamges and we fed them both to the network. The forward pass is pretty intuitive. The backward pass needed some more careful thinking though.
 Our first idea was to introduce a new loss, thus distinguishing between colorization and style loss.
 The colorization loss was exactly the same as before, a linear combination of MSE and lpips between recreated image and original colur image.
@@ -226,9 +249,9 @@ The style loss was obtained in the following way:
 3) We computed MSE between the two latent spaces
 The final loss was a weighted linear combination of the two losses.
 
-We hoped to manually force the network to learn style transfer, but we were unfortunately stopped by a very basic inconvenience: the balancing of the two losses. Indeed, the colorization loss was of the order of magnitude of $10^{-2}$ or $10^{-3}$, while the style loss, which we rember was computed on the embdeeings obtained throught the same encoder, was much lower, woth values oscillating between $10^{-5}$ and $10^{-8}$. We realised that without additional learning techniques, we would have never found an optimal way to balance these two losses. Here is an example:
+We hoped to manually force the network to learn style transfer, but we were unfortunately stopped by a very basic inconvenience: the balancing of the two losses. Indeed, the colorization loss was of the order of magnitude of $10^{-2}$ or $10^{-3}$, while the style loss, which we rember was computed on the embdeeings obtained throught the same encoder, was much lower, woth values oscillating between $10^{-5}$ and $10^{-8}$. We realised that without additional learning techniques, we would have never found an optimal way to balance these two losses. Using a sigmoid function for the style encoder ensured that the two losses were now in the same range, but that did not make any difference in the training process. The combined loss was defined as $$combined_loss = α \times color_loss + (1-α) \times style_loss$$
 
-<table align="center">
+<!-- <table align="center">
   <tr>
     <th>Train dataset size</th>
     <td>5000</td>
@@ -249,7 +272,7 @@ We hoped to manually force the network to learn style transfer, but we were unfo
     <th><span style="color:orange"> combined_loss = α•color_loss + (1-α)•style_loss</span></th>
     <td><span style="color:orange"> α = 0.5</span></td>
   </tr>
-</table>
+</table> -->
 
 <p align="center">
   <img src="./images/combined_loss_failed_attempt.png" width="500" />
@@ -260,7 +283,7 @@ We hoped to manually force the network to learn style transfer, but we were unfo
 
 
 
-#### Second attempted: using two different optimizers
+#### Attempt 2: using two different optimizers
 The dual-opt model was exactly what it seems from the name: at every iteration we executed two forward passes and two backward with two different optimizers and loss functions: first the colorization loss and then the style loss. More importance was given to the colorization by passing the optimizer a learning rate 10 times higher than the one of the style optimizer.
 
 We soon experienced bad results: 
@@ -269,57 +292,16 @@ We soon experienced bad results:
 
 Soon we would realise, by investigating the values of the latent space of the AdaIN encoder, that it was cast to zero by the backpropagation of the colorization optimizer, cutting out all its power to represent the style input. The style optimizer had little of sense to work on, leading just to worse and worse results.
 
-
-#### Reflections that lead to the final model
 The dual-opt approach was not viable in the brutal state we described and tested. One way to refine it would have been to associate with each optimizer only certain parameters, especially allowing the colorization optimizer only to backpropage on the baseline UNet.
-
-The combined-loss approach could have been further developed with learning techniques to balance the two losses.
 
 But actually, the takeaway from this experiments was learning how the training proceeded, how the weights were cast to zero by the colorization loss and also how we were underestimating the capabilities of the AdaIN encoder.
 The whole point of leaning the adain parameters was intended for implicit training, for letting it learn the true colour semantics of the style image, withouth forcing the network exterally with different couples of content and style-images.
 
-After a second meeting with our tutor, we came to realise that a much simpler solution could be taken, that would give justice to the learnable AdaIN original concept: we had to introduce scarsity in the baseline UNet, so that it would look into the style representation, instead of trying to recreate itself perfectly and cast all the AdaIN parameters to 0.
 
+### Final solution
 
-### The solution and the final model
+For this section the following configuration is used:
 
-#### The turning point
-
-<table align="center">
-  <tr>
-    <th>Train dataset size</th>
-    <td>5000</td>
-  </tr>
-  <tr>
-    <th>Validation dataset size</th>
-    <td>500</td>
-  </tr>
-  <tr>
-    <th>Batch size</th>
-    <td>16</td>
-  </tr>
-  <tr>
-    <th>Colorspace</th>
-    <td>RGB</td>
-  </tr>
-  <tr>
-    <th><span style="color:orange"> AdaIN encoder latent space dimension</span></th>
-    <td><span style="color:orange"> 32</span></td>
-  </tr>
-</table>
-
-Accordingly to the reflections stated above, we rewrote the UNet to be much lighter, by reducing the number of channels to 1/4 throughout the whole network and all skip connections and AdaIN pins respectively.
-One more change was needed before finally obtaining some positive news: reducing the latent space of the AdaIN encoder from size 128 to size 32.
-Finally, these were the results we got:
-
-In short: we still experienced bad colorization capabilities, with even some artefacts, but for the first time the latent space of the AdaIN encoder was training well and it had reasonable values. You can see this in the next image, which represents histograms of the values of the embeddings of four different test images.
-
-<p align="center">
-  <img src="./images/elephants_latent32.jpeg" width="800" />
-  <img src="./images/histograms_latent32.jpeg" width="800" />
-</p>
-
-#### The first achievement in color transfer
 
 <table align="center">
   <tr>
@@ -346,13 +328,48 @@ In short: we still experienced bad colorization capabilities, with even some art
     <th><span style="color:orange"> Dropout rate after every convolution</span></th>
     <td><span style="color:orange"> 0.2</span></td>
   </tr>
+  <tr>
+    <th>Epochs</th>
+    <td>32</td>
+  </tr>
 
 </table>
 
-It's no surprise that the next step of ours was to train on a much bigger dataset and for more epochs. One drawback was the insurgence of overfitting. Therefore we introduced dropout layers after every convolution block.
-Here are the results!
 
-Truth be told, elephants looked more like mammoths, but the big news lied in the ability of this networ to operate color transfer from artistic images, like in the examples below.
+<!-- <table align="center">
+  <tr>
+    <th>Train dataset size</th>
+    <td>5000</td>
+  </tr>
+  <tr>
+    <th>Validation dataset size</th>
+    <td>500</td>
+  </tr>
+  <tr>
+    <th>Batch size</th>
+    <td>16</td>
+  </tr>
+  <tr>
+    <th>Colorspace</th>
+    <td>RGB</td>
+  </tr>
+  <tr>
+    <th><span style="color:orange"> AdaIN encoder latent space dimension</span></th>
+    <td><span style="color:orange"> 32</span></td>
+  </tr>
+</table> -->
+
+The solution was to introduce scarsity in the baseline UNet, so that it would look into the style representation, instead of trying to recreate itself perfectly and cast all the AdaIN parameters to 0. We rewrote the UNet to be much lighter, by reducing the number of channels to $1/4$ throughout the whole network and all skip connections and AdaIN pins respectively.
+Another change was reducing the latent space of the AdaIN encoder from size 128 to size 32.
+
+<!-- 
+<p align="center">
+  <img src="./images/elephants_latent32.jpeg" width="800" />
+  <img src="./images/histograms_latent32.jpeg" width="800" />
+</p> -->
+
+After introducing dropout layers and training for 32 epochs on 50k training images we obtain clear colorization and style transfer. The style latent space is no longer null and we can see the different modes for different characteristics of the style image.
+
 <p align="center">
   <img src="./images/latent32_elephants.png" width="800" />
   <img src="./images/latent32_histograms.png" width="800" />
@@ -361,10 +378,9 @@ Truth be told, elephants looked more like mammoths, but the big news lied in the
   <img src="./images/latent32-styletransfer-3.jpeg" width="800" />
 </p>
 
-# <a name="final-model"></a>6. The final model
-As we previously stated, [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project) presents only the meaningful experiments, that taught us a lesson and brought us here, to the final model. Many ther experiments in between were conducted, to reach the final state, and especially further more training.
+### Final model
 
-On the other hand, al fundamental changes are stated in [Section 5](#5-troubles-experiments-reflections-and-evolution-of-the-project), thus implying that from the [last result of the aformentioned section](#the-first-achievement-in-color-transfer) and the one we will present now, the only news is long training.
+We come to the final configuration of our model. We increase the training size to 100k and change the dropout rate to 0.2. With this configuration we are able to obtain meaningful results.
 
 <table align="center">
   <tr>
@@ -413,7 +429,7 @@ In conclusion, we have presented a novel UNet architecture enhanced with Adaptiv
 # <a name="appendix"></a>Appendix
 
 ## Further experiments
-In this extra section we outline some of the experiments that didn't make it to the finla cut and that didn't present meaningful results toward our goal. Nonetheless they were an interesting study and give the full picture on the efforts put into this project.
+In this extra section we outline some of the experiments that didn't make it to the final cut and that didn't present meaningful results toward our goal. Nonetheless they were an interesting study and give the full picture on the efforts put into this project.
 
 ### The LAB colorspace
 
@@ -468,7 +484,7 @@ We are aware that with further experiments, aimed at rebalancing the scarcity an
 </p>
 
 
-### Additional results
+## Additional results
 
 <h3 align='center'> Dog and Sheeps </p>
 <p align="center">
