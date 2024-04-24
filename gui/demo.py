@@ -2,7 +2,6 @@ import streamlit as st
 import torch
 import torchvision
 import torchvision.transforms as T
-import plotly.express as px
 from PIL import Image
 from utils import load_model_from_checkpoint
 from utils import get_transforms
