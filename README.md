@@ -177,6 +177,11 @@ We use the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) dataset fo
 
 #### Training analysis
 <span style="color:red"> 	insert graph loses from latest model here </span>
+<p align="center">
+  <img src="./images/RGB_Latent32_loss_plot.png" width="600" />
+  Loss curves of the final model. All details about the model in the next section
+</p>
+
 
 # <a name="troubles"></a>5. Experiments and ablation studies
 In this section we present a reorganized history of the thought process that led us to the final prothotype.
