@@ -13,7 +13,6 @@ import seaborn as sns
 import sys
 import dataset
 
-# sys.path.append("src/")
 
 device = torch.device("cuda" if torch.cuda.is_available()
                 else "mps" if torch.backends.mps.is_built() else "cpu")
@@ -69,13 +68,6 @@ def compose_output(original_image, recreated_image):
     print("L shape",l.shape)
     return torch.cat((l.unsqueeze(0),recreated_image),0)
 
-'''
-TODO: when using lab color space we have certain artefacts that do not appear when we only use RGB images
-
-may be from normalization in the lab space or the transformation itself
-
-entry[image][0]
-'''
 def visualize(entry,model,lab=False):
     image = entry['grayscale_image']
     output = model(image.unsqueeze(0).to(device))

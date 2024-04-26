@@ -110,7 +110,6 @@ def get_transforms(colorspace='RGB',resolution=(128,128)):
 
 
 
-## tested | works fine
 transform_inverse = torchvision.transforms.Compose([
     vgg_transorm_inverse,
     LABtoRGB()
@@ -296,15 +295,6 @@ def prepare_styles_dataset(train_size=10,test_size=10,batch_size=4,colorspace='R
 
     print("Dataset loaded successfully")
     return transformed_train, transformed_test
-
-
-
-   
-
-
-
-
-
 
 
 def normalization_check(transformed_train_list, transformed_test_list):

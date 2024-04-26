@@ -4,7 +4,7 @@
 
 | Name and surname    |  Matric. Nr. | GitHub username  |   e-mail address   |
 |:--------------------|:-------------|:-----------------|:-------------------|
-| Cristi Andrei Prioteasa | <span style="color:red"> 	4740844 </span>| PrioteasaAndrei | cristi.prioteasa@stud.uni-heidelberg.de|
+| Cristi Andrei Prioteasa | 4740844| PrioteasaAndrei | cristi.prioteasa@stud.uni-heidelberg.de|
 | Matteo Malvestiti | 4731243| Matteo-Malve | matteo.malvestiti@stud.uni-heidelberg.de|
 | Jan Smoleń | 4734263| smolenj | wm315@stud.uni-heidelberg.de|
 
@@ -80,12 +80,9 @@ We analyze [Analysis of Different Losses for Deep Learning Image Colorization](h
 
 # <a name="approach"></a>4. Approach
 ## <a name="architecture"></a>4.1 Architecture
-<span style="color:red"> 	Change it to final one when we are done </span>
 <p align="left">
   <img src="./images/architecture_map.png" width="2000" />
 </p>
-Let us explain our architecture step by step.
-<span style="color:red"> 	reformat this and add more </span>
 
 
 #### The baseline UNet
@@ -387,7 +384,7 @@ After introducing dropout layers and training for 32 epochs on 50k training imag
   <img src="./images/latent32-styletransfer-2.jpeg" width="800" />
   <img src="./images/latent32-styletransfer-3.jpeg" width="800" />
 </p>
-
+<!-- 
 ### Final model
 
 We come to the final configuration of our model. We increase the training size to 100k and change the dropout rate to 0.2. With this configuration we are able to obtain meaningful results.
@@ -418,8 +415,9 @@ We come to the final configuration of our model. We increase the training size t
     <td><span style="color:orange"> 0.1</span></td>
   </tr>
   
-</table>
+</table> -->
 
+The next are results from our final model:
 
 <h3 align='center'> Exotic bird </p>
 <p align="center">
