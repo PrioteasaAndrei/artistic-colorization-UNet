@@ -70,16 +70,16 @@ There are three big differences between our approach and the forementioned paper
 
 # <a name="related_work"></a>3. Related work
 
-Most of the related work deals with the non-parameter version of AdaIN, as introduce in the [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868) or work with some sort of Generative Adversarial Networks as they are more expressive and suited for this task. There are three main approaches in the literature of UNet based colorization: combining color and texture in the transformation (called style), colorizing without any style information, such as in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) or considering color and texture separatly and allowing for a controllable blend between the two (see [Aesthetic-Aware Image Style Transfer](http://hcsi.cs.tsinghua.edu.cn/Paper/Paper20/MM20-HUZHIYUAN.pdf
+Most of the related work deals with the non-parameter version of AdaIN, as introduced in the [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868) or work with some sort of Generative Adversarial Networks as they are more expressive and better suited for this task. There are three main approaches in the literature of UNet based colorization: combining color and texture in the transformation (called style), colorizing without any style information, such as in [Image Colorization using U-Net with Skip Connections and Fusion Layer on Landscape Images](https://arxiv.org/abs/2205.12867) (which served as an initial starting point for our work) or considering color and texture separatly and allowing for a controllable blend between the two (see [Aesthetic-Aware Image Style Transfer](http://hcsi.cs.tsinghua.edu.cn/Paper/Paper20/MM20-HUZHIYUAN.pdf
 )). In our work we deal only with color transfer in different styles and no texture transfer.
-
+We analyze [Analysis of Different Losses for Deep Learning Image Colorization](https://arxiv.org/pdf/2204.02980.pdf) and conclude that the a more complicated colorization loss does not lead to significantly better results.
 
 <!-- Anyways, this was a big part of our first two weeks of work. The paper we were getting inspiration from was: [Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization](https://arxiv.org/abs/1703.06868), together with its unofficial implementation from the GitHub repository [GitHub: naoto0804/pytorch-AdaIN](https://github.com/naoto0804/pytorch-AdaIN). -->
 
 
 
 # <a name="approach"></a>4. Approach
-## <a name="architecture"></a>4.1 The Architecture
+## <a name="architecture"></a>4.1 Architecture
 <span style="color:red"> 	Change it to final one when we are done </span>
 <p align="left">
   <img src="./images/architecture_map.png" width="2000" />
@@ -89,17 +89,20 @@ Let us explain our architecture step by step.
 
 
 #### The baseline UNet
-The main core of the NN is the central UNet. UNet is still state of the art at this day and it's particularly effective for segmenting images. This knowledge is exactly what we needed for our colorization task.
-The encoder consists in convolutions with 3x3 filters, always followed by ReLu and batch normalization, which are indicated in the picture by the orange slices on the right side of the convolution blocks.
-After every set of convolutions a max pooling layer halves the feature maps dimensions.
-The bottleneck maintains a reasonable size: 1/16 of the original size. As we work with 128x128 images due to computational cost limitations, this means that the bottleneck feature maps have size 8x8.
+The central component of our architecture is the [UNet](https://arxiv.org/abs/1505.04597), which remains a state-of-the-art solution for image segmentation, making it an ideal choice for our colorization task. The encoder comprises a series of convolutional layers with 3x3 filters, each followed by a ReLU activation and batch normalization. This structure is visually represented by the orange segments in the diagram adjacent to the convolution blocks. Following each set of convolutions, a max-pooling layer reduces the feature map dimensions by half.
 
-The decoder doesn't exactly mirror the encoder, but present the same jumps in number of chanels and dimension of the feature maps. Upsampling is done through transpose convolution. Relu and batch normalization are applied also in the decoder as can be seen by the orange slices.
+The bottleneck section reduces the spatial resolution to 1/16 of the original, aligning with the computational constraints of working with 128x128 images. Thus, the bottleneck feature maps have a size of 8x8.
 
-The most notable featue of the UNet are the skip connections. We have five. Every time we concatenate the respective feature maps in the encoder to the newly upscaled featuremaps of the decoder. Then we fuse them together with 1x1 convolutions.
+The decoder does not precisely mirror the encoder, but it maintains the same patterns of changes in channel counts and feature map dimensions. Upsampling is achieved using transpose convolution. Similarly, ReLU activations and batch normalization are applied throughout the decoder, indicated by the orange segments.
 
+A distinguishing feature of UNet is the use of skip connections. In this configuration, there are five skip connections. At each skip connection, the feature maps from the encoder are concatenated with the corresponding upscaled feature maps from the decoder. These concatenated feature maps are then processed using 1x1 convolutions to fuse them.
 
-This network alone was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
+The network expects input in the form of $[C,H,W]$, where the number of channels $C$ can be 2 for the LAB colorspace and 3 for the RGB colorspace. We chose to train our model using the RGB color space because the LAB tranformation introduces a number of artefacts from numerical instability of the transformation which yields poorer results.
+
+Together, this architecture forms the backbone of our neural network, providing a robust and efficient structure for the image colorization task.
+
+This network alone (without the style encoder and AdaIN layers) was tested in a preliminary phase and resulted to be able to perform both the recreation of images and colorisation, although with notable overfitting problems.
+
 Below you can see:
 1) Loss curves for only UNet tasked with colorization
 2) Colorization performance on a training image
@@ -144,9 +147,11 @@ The results were achieved using the following network configuration:
 </table>
 
 
-The network expects input in the form of $[C,H,W]$, where the number of channels $C$ can be 2 for the LAB colorspace and 3 for the RGB colorspace. We chose to train our model using the RGB color space because the LAB tranformation introduces a number of artefacts from numerical instability of the transformation which yields poorer results.
 
-#### The addition of Adaptive Instance Normalization
+#### Adaptive Instance Normalization and Style Encoder
+
+In order to achieve style transfer (only colour) we augument the base Unet with two additional components: a style encoder which encodes the color features of the original image(we will later discuss why only the color features and not also the texture features of the original image are encoded) and AdaIN layers which align the style feature maps with the content image feature maps.
+
 We implement a version of Adaptive Instance Normalization as in the original [Style GAN paper](https://arxiv.org/pdf/1812.04948.pdf), given by (see paper for full description of the terms):
 $$
 AdaIN(xi, y) = y_{s,i} \times \frac{x_i − μ(xi)}{σ(xi)} + y_{b,i}
@@ -156,13 +161,13 @@ This layers aims to align per channel the mean and variance of the feature space
 
 The AdaIN encoder runs only one per epoch, embedding the style image in a compressed latent space. After every block of convolutions, followed by ReLu activations and batch normalization, the feature maps get normalized with the mean and std of the adain interface. Since in the different stages of the UNet the feature maps have different channel sizes, a dense linear layer is put in between the AdaIN latent space and the feature maps.
 
-
+The style encoder is a simple encoder followed by a Global Average Pooling (GAP) layer, which encodes the colour features in a latent space dimension of $32$ (we later discuss how the dimension of the latent space influences the colorization and style transfer).
 
 ## <a name="architecture"></a>4.2 Training & Dataset
 
 Since we didn't have available computing resources, we used a personal laptop with NVIDIA GeForce RTX 3050TI, 4096MiB VRAM and a M1 MacBook Air (16Gb RAM) for training. This limit our ability in terms of resolution of the input images. Training with patches of size $256 \times 256$ yielded poor results even after prologed training, but using patches of size $128 \times 128$ yields decent results which generalize.
 
-We experiment with two types of losses: MSE against the original image and [Learned Perceptual Similarty](https://github.com/richzhang/PerceptualSimilarity), as a way to encourage the network to learn semanting colorization information about the image instead of faithfully reproducting the colors of the original image. We use a weighted sum of both losses for our training.
+We experiment with two types of losses: MSE against the original image and [Learned Perceptual Similarty](https://github.com/richzhang/PerceptualSimilarity), as a way to encourage the network to learn semantic colorization information about the image instead of faithfully reproducting the colors of the original image. We use a weighted sum of both losses for our training.
 
 #### Implicit training
 During training we pass as style image the colour original image itself.
@@ -430,6 +435,17 @@ In conclusion, we have presented a novel UNet architecture enhanced with Adaptiv
 
 ## Further experiments
 In this extra section we outline some of the experiments that didn't make it to the final cut and that didn't present meaningful results toward our goal. Nonetheless they were an interesting study and give the full picture on the efforts put into this project.
+
+### Using only LPIPS (Learned Perceptual Similarity) as the loss function
+
+Using only LPIPS as our loss function yields some interesting artefacts in a grid-like pattern which we cannot explain.
+
+<h3 align='center'> LPIPS colorization artefacts (without style transfer) </p>
+<p align="center">
+  <img src="./images/baseball_no_style.png" width="800" />
+  <img src="./images/dogs_porch.png" width="800" />
+</p>
+
 
 ### The LAB colorspace
 
