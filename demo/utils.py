@@ -3,6 +3,7 @@ import torch
 import torchvision
 from model import UNetAdaiN
 from PIL import Image
+from matplotlib import pyplot as plt
 
 
 
@@ -132,3 +133,40 @@ transform_inverse = torchvision.transforms.Compose([
     vgg_transorm_inverse,
     LABtoRGB()
     ])
+
+
+
+def plot_four(colored,grayscale,style,output,save_name=None):
+    plt.figure(figsize=(15, 5))
+
+    # Plot first image
+    plt.subplot(1, 4, 1)
+    plt.imshow(colored)
+    plt.title('Ground truth - colored')
+    plt.axis('off')
+
+    # Plot second image
+    plt.subplot(1, 4, 2)
+    plt.imshow(grayscale,cmap='gray')
+    plt.title('Input - grayscale')
+    plt.axis('off')
+
+    # Plot third image
+    plt.subplot(1, 4, 3)
+    plt.imshow(style)
+    plt.title('Input - style')
+    plt.axis('off')
+
+    # Plot third image
+    plt.subplot(1, 4, 4)
+    plt.imshow(output)
+    plt.title('Ouptut - colorized')
+    plt.axis('off')
+
+    if save_name:
+        filepath = os.path.join("samples_organized",save_name)  # Adjust path separator as needed for your OS
+        plt.savefig(filepath)
+        plt.close()
+
+    else:
+        plt.show()
