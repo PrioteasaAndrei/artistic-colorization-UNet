@@ -15,30 +15,43 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 
 ***
 
-### Setup and launch demo-app
+### Setup
 
 ```bash
 conda env create -f environment.yml --name colorization
 conda activate colorization
-streamlit run demo/demo-app.py -- --model_path=models/RGB_Latent32_best_model.pth.tar
 ```
-Use the graphical interface to upload style and contet images. The images will be automatically resized to $128px\times128px$. The model takes only 400 MB, so it should work on most low-end devices.
 
-### Alternative: Test the model with demo.ipynb
-We also provide a Jupyter Notebook, that will easily allow the user to download and import the same datasets that were used for both training and testing.
-This is ideal if you want to reproduce results in the form shown belo or if you want to further train the model.
+### Three ways to test our model:
+#### 1. Use our GUI
+Use the graphical interface to upload style and contet images. The images will be automatically resized to $128px\times128px$. The model takes only 400 MB, so it should work on most low-end devices. This is what an hypothetical final product would look like.
+```bash
+# Be sure to be in the custom environment created in Setup
+cd demo/
+streamlit run demo-app.py -- --model_path=models/RGB_Latent32_best_model.pth.tar
+```
+
+#### 2. Test the model with demo.ipynb
+We also provide a Jupyter Notebook that will easily allow the user to generate plots such as those can be found in our [Results section](#results). The way to go to have a better comparison between multiple outputs.
+
+#### 3. Inspecting the training and loading our datasets in main.ipynb
+`implicit-UNet-AdaIN/main.ipynb` is the jupyter notebook we used to import the two datasets and to set up and train the network.
+There is a lot of stuff here, but you find easy access to the datasets and let's you experiment with the training procedure.
 
 NOTE: a Huggingface token is needed to run the training / download the dataset (this is not necessary to run the forward pass of the network). Create a .env file in the main directory and add `HUGGING_FACE_TOKEN='YOUR TOKEN'`.
 
 ### Project Structure
 ```
-├── demo <-------------------- demo-app and demo.ipynb jupyter notebook
-│   ├── checkpoints <--------- model checkpoint
-│   └── images <-------------- some content and style images for testing
-├── implicit-UNet-AdaIN <----------------- network and training: our workspace
-    ├── implicit_scarsity_experiments <--- plots and tables of loss values
-    ├── samples <------------------------- testing samples
-    └── samples_organized <--------------- testing samples in a more human readable format
+├── demo/
+│   ├── checkpoints/   <--------- model checkpoint
+│   ├── images/    <-------------- some content and style images for testing
+│   ├── demo-app.py
+│   └── demo.ipynb
+└── implicit-UNet-AdaIN/
+    ├── implicit_scarsity_experiments/    <--- plots and tables of loss values
+    ├── samples/    <------------------------- testing samples
+    ├── samples_organized/    <--------------- testing samples in a more human readable format
+    └── main.ipynb
 
 ```
 
