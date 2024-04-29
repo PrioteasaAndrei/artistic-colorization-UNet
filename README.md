@@ -32,15 +32,14 @@ NOTE: a Huggingface token is needed to run the training / download the dataset (
 
 ### Project Structure
 ```
-├── gui <----------- streamlit app
-├── images <---------- various images saved along the project developement
-├── implicit-UNet-AdaIN <----------------- network and training
-│   ├── implicit_scarsity_experiments <---------------- experiment results
-│   ├── samples <-------------------- validation samples
-│   └── samples_organized <--------------- validation samples in a more human readable format
-├── models <---------------------- model checkpoint
-└── Unet_adain <---------------------- older versions of the model checkpoints
-    └── combined_losses_experiments
+├── demo <-------------------- demo-app and demo.ipynb jupyter notebook
+│   ├── checkpoints <--------- model checkpoint
+│   └── images <-------------- some content and style images for testing
+├── implicit-UNet-AdaIN <----------------- network and training: our workspace
+    ├── implicit_scarsity_experiments <--- plots and tables of loss values
+    ├── samples <------------------------- testing samples
+    └── samples_organized <--------------- testing samples in a more human readable format
+
 ```
 
 ## Table of contents
@@ -48,7 +47,7 @@ NOTE: a Huggingface token is needed to run the training / download the dataset (
 1. [Introduction](#introduction)
 2. [Results](#appendix)
 
-For a detail insight on the project, please refer to [Report.pdf](./Report.pdf).
+For a detailed insight on the project, please refer to [Report.pdf](./Report.pdf).
 
 # Introduction
 
