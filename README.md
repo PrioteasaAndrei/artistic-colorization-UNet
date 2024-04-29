@@ -38,6 +38,8 @@ We also provide a Jupyter Notebook that will easily allow the user to generate p
 `implicit-UNet-AdaIN/main.ipynb` is the jupyter notebook we used to import the two datasets and to set up and train the network.
 There is a lot of stuff here, but you find easy access to the datasets and let's you experiment with the training procedure.
 
+Refere to the README inside the `implicit-UNet-AdaIN/" folder for further instructions.
+
 NOTE: a Huggingface token is needed to run the training / download the dataset (this is not necessary to run the forward pass of the network). Create a .env file in the main directory and add `HUGGING_FACE_TOKEN='YOUR TOKEN'`.
 
 ### Project Structure
