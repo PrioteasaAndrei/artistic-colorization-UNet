@@ -66,19 +66,13 @@ For a detailed insight on the project, please refer to [Report.pdf](./Report.pdf
 
 # Introduction
 
-Colorization of grayscale images has been an area of significant interest in computer vision, with applications ranging from photo restoration to artistic expression. We propose an approach to colorize grayscale images in various artistic styles using a U-Net architecture enhanced with Adaptive Instance Normalization (AdaIN) layers. U-Net, known for its effectiveness in semantic segmentation tasks, provides an ideal framework for our colorization task due to its ability to capture spatial dependencies while preserving fine details. By incorporating AdaIN layers into the U-Net architecture, we introduce the capability to adaptively transfer artistic styles (here we use style to refer to color choices) from reference images to grayscale inputs. AdaIN enables the decoupling of content and style in feature representations, allowing us to leverage the content information from grayscale images while infusing them with the stylistic characteristics extracted from reference color images. This style-guided colorization approach opens up new possibilities for artistic expression, allowing users to apply various painting styles, from impressionism to surrealism, to grayscale inputs.
+Colourization of grayscale images has been an area of significant interest in computer vision, with applications ranging from photo restoration to artistic expression. We propose an approach to colorize grayscale images in various artistic styles using a U-Net architecture enhanced with Adaptive Instance Normalization (AdaIN) layers. U-Net, known for its effectiveness in semantic segmentation tasks, provides an ideal framework for our colorization task due to its ability to capture spatial dependencies while preserving fine details. By incorporating AdaIN layers into the U-Net architecture, we introduce the capability to adaptively transfer artistic styles (here we use style to refer to color choices) from reference images to grayscale inputs. AdaIN enables the decoupling of content and style in feature representations, allowing us to leverage the content information from grayscale images while infusing them with the stylistic characteristics extracted from reference coloured images. This style-guided colourization approach opens up new possibilities for artistic expression, allowing users to apply various painting styles, from impressionism to surrealism, to grayscale inputs.
 
 # Results
-Here are some examples for some random test images and random paintings. The first row always shows the colourization obtained by passing the groud truth image to the network, like in training phase. That is not a realistic scenario, since in practice the coloured image is not available. On the other hand, it provides a good baseline for comparinson.
+Here are some examples for some random test images and random paintings. The first row always shows the colourization obtained by passing the ground truth image to the network, like in training phase. That is not a realistic scenario, since in practice the coloured image is not available. On the other hand, it provides a good baseline for comparison.
 
-We encourage then to experimnt yourself with any image of your choice from the [demo-app](./demo/demo-app.py) or with images from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) and [wikiart](https://huggingface.co/datasets/huggan/wikiart) datasets with the [demo.ipynb](./demo/demo.ipynb).
-<h3 align='center'> Dog and Sheeps </p>
-<p align="center">
-  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_original.png" width="800" />
-  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_0.png" width="800" />
-  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_1.png" width="800" />
-  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_2.png" width="800" />
-</p>
+We encourage the users to experimnt themselves with any image of their choice through the [demo-app](./demo/demo-app.py) or the [demo.ipynb](./demo/demo.ipynb) or otherwise with images from the [imagenet-1k](https://huggingface.co/datasets/imagenet-1k) and [wikiart](https://huggingface.co/datasets/huggan/wikiart) datasets via [main.ipynb](./implicit-UNet-AdaIN/main.ipynb).
+
 
 <h3 align='center'> Exotic bird </p>
 <p align="center">
@@ -86,6 +80,14 @@ We encourage then to experimnt yourself with any image of your choice from the [
   <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_0.png" width="800" />
   <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_1.png" width="800" />
   <img src="./implicit-UNet-AdaIN/samples_organized/image_1_style_2.png" width="800" />
+</p>
+
+<h3 align='center'> Dog and Sheeps </p>
+<p align="center">
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_original.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_0.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_1.png" width="800" />
+  <img src="./implicit-UNet-AdaIN/samples_organized/image_0_style_2.png" width="800" />
 </p>
 
 <h3 align='center'> Small dog in grass </p>
