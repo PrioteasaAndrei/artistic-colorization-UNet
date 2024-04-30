@@ -18,8 +18,7 @@ Denis Zavadski: denis.zavadski@iwr.uni-heidelberg.de
 ### Setup
 
 ```bash
-conda env create -f environment.yml --name colorization
-conda activate colorization
+pip install -r requirements.txt
 ```
 
 ### Three ways to test our model:
@@ -28,7 +27,7 @@ Use the graphical interface to upload style and contet images. The images will b
 ```bash
 # Be sure to be in the custom environment created in Setup
 cd demo/
-streamlit run demo-app.py -- --model_path=models/RGB_Latent32_best_model.pth.tar
+streamlit run demo-app.py -- --model_path=checkpoints/RGB_Latent32_best_model.pth.tar
 ```
 
 #### 2. Test the model with demo.ipynb
