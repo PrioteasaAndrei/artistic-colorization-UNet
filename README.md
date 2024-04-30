@@ -24,6 +24,12 @@ pip install -r requirements.txt
 ### Three ways to test our model:
 #### 1. Use our GUI
 Use the graphical interface to upload style and contet images. The images will be automatically resized to $128px\times128px$. The model takes only 400 MB, so it should work on most low-end devices. This is what an hypothetical final product would look like.
+
+<p align="center">
+  <img src="./demo/images/demo-app-screenshot.png" width="800" />
+  
+</p>
+
 ```bash
 # Be sure to be in the custom environment created in Setup
 cd demo/
